@@ -1,6 +1,5 @@
 // top.sv
 
-//`include "mm_pkg.sv"
 import mm_pkg::*;
 
 module top;
@@ -17,4 +16,3 @@ module top;
 	final $display("\n\tEnd of test\n\n");
 
 endmodule : top
-

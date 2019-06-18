@@ -1,6 +1,5 @@
 // multiply.sv
 
-//`include "mm_pkg.sv"
 import mm_pkg::*;
 
 module multiply
