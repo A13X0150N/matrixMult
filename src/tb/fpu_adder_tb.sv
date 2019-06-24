@@ -1,8 +1,8 @@
-// fpu_multiplier_tb.sv
+// fpu_adder_tb.sv
 
 import mm_defs::*;
 
-module fpu_multiplier_tb;
+module fpu_adder_tb;
     import fpu_pkg::*;
 
     fpu_bfm fpu_bfm();
@@ -10,7 +10,7 @@ module fpu_multiplier_tb;
     fpu_operation_t op_set=nop;
     int test_a='0, test_b=32'h42b1cccd, result='0;
 
-    fpu_multiplier dut(
+    fpu_adder dut(
         .clk        (fpu_bfm.clk),
         .rst        (fpu_bfm.rst),
         .input_a    (fpu_bfm.input_a),
@@ -28,7 +28,7 @@ module fpu_multiplier_tb;
         forever begin
             test_a += 1;
             test_b = 32'h42b1cccd;
-            op_set = mult;
+            op_set = add;
             fpu_bfm.send_op(op_set, $shortrealtobits($itor(test_a)), test_b, result);
         end
     end

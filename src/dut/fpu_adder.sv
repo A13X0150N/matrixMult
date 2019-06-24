@@ -1,10 +1,10 @@
-// fpu_multiplier.sv
+// fpu_adder.sv
 
-//IEEE Floating Point Multiplier (Single Precision)
+//IEEE Floating Point Adder (Single Precision)
 //Copyright (C) Jonathan P Dawson 2013
 //2013-12-12
 
-module fpu_multiplier(
+module fpu_adder(
             input         clk,
             input         rst,
             input  [31:0] input_a,
@@ -20,9 +20,9 @@ module fpu_multiplier(
         get_input,
         unpack,
         special_cases,
-        normalize_in,
-        multiply_0,
-        multiply_1,
+        align,
+        add_0,
+        add_1,
         normalize_1,
         normalize_2,
         round,
@@ -37,14 +37,14 @@ module fpu_multiplier(
     logic        s_input_ack;
 
     logic [31:0] a, b, z;
-    logic [23:0] a_m, b_m, z_m;
+    logic [26:0] a_m, b_m;
+    logic [23:0] z_m;
     logic [9:0]  a_e, b_e, z_e;
     logic        a_s, b_s, z_s;
     logic        guard, round_bit, sticky;
-    logic [49:0] product;
+    logic [27:0] sum;
 
     always @(posedge clk) begin
-    
         if (rst) begin
             state <= get_input;
             s_input_ack <= 0;
@@ -53,7 +53,7 @@ module fpu_multiplier(
 
         else begin
             unique case(state)
-        
+
                 get_input: begin
                     s_input_ack <= 1;
                     if (input_stb) begin
@@ -65,8 +65,8 @@ module fpu_multiplier(
                 end
 
                 unpack: begin
-                    a_m <= a[22:0];
-                    b_m <= b[22:0];
+                    a_m <= {a[22:0], 3'd0};
+                    b_m <= {b[22:0], 3'd0};
                     a_e <= a[30:23] - 127;
                     b_e <= b[30:23] - 127;
                     a_s <= a[31];
@@ -83,108 +83,134 @@ module fpu_multiplier(
                         z[21:0] <= 0;
                         state <= put_z;
                     end
-                    
+
                     // If a is inf return inf
                     else if (a_e == 128) begin
-                        z[31] <= a_s ^ b_s;
+                        z[31] <= a_s;
                         z[30:23] <= 255;
                         z[22:0] <= 0;
-                        // If b is zero return NaN
-                        if (($signed(b_e) == -127) && (b_m == 0)) begin
-                            z[31] <= 1;
+                        // If a is inf and signs don't match return nan
+                        if ((b_e == 128) && (a_s != b_s)) begin
+                            z[31] <= b_s;
                             z[30:23] <= 255;
                             z[22] <= 1;
                             z[21:0] <= 0;
                         end
                         state <= put_z;
                     end
-                    
+            
                     // If b is inf return inf
                     else if (b_e == 128) begin
-                        z[31] <= a_s ^ b_s;
+                        z[31] <= b_s;
                         z[30:23] <= 255;
                         z[22:0] <= 0;
-                        // If a is zero return NaN
-                        if (($signed(a_e) == -127) && (a_m == 0)) begin
-                            z[31] <= 1;
-                            z[30:23] <= 255;
-                            z[22] <= 1;
-                            z[21:0] <= 0;
-                        end
                         state <= put_z;
                     end
-                    
-                    // If a is zero return zero
+
+                    // If a is zero return b
+                    else if ((($signed(a_e) == -127) && (a_m == 0)) && (($signed(b_e) == -127) && (b_m == 0))) begin
+                        z[31] <= a_s & b_s;
+                        z[30:23] <= b_e[7:0] + 127;
+                        z[22:0] <= b_m[26:3];
+                        state <= put_z;
+                    end
+
+                    // If a is zero return b
                     else if (($signed(a_e) == -127) && (a_m == 0)) begin
-                        z[31] <= a_s ^ b_s;
-                        z[30:23] <= 0;
-                        z[22:0] <= 0;
+                        z[31] <= b_s;
+                        z[30:23] <= b_e[7:0] + 127;
+                        z[22:0] <= b_m[26:3];
                         state <= put_z;
                     end
-                    
-                    // If b is zero return zero
+
+                    // If b is zero return a
                     else if (($signed(b_e) == -127) && (b_m == 0)) begin
-                        z[31] <= a_s ^ b_s;
-                        z[30:23] <= 0;
-                        z[22:0] <= 0;
+                        z[31] <= a_s;
+                        z[30:23] <= a_e[7:0] + 127;
+                        z[22:0] <= a_m[26:3];
                         state <= put_z;
                     end
-                    
-                    // Denormalised Number          
+
+                    // Denormalized Number          
                     else begin
                         // Check a
                         if ($signed(a_e) == -127) begin
-                            a_e <= -126;
-                        end else begin
-                            a_m[23] <= 1;
+                        a_e <= -126;
                         end
-                        
+                        else begin
+                            a_m[26] <= 1;
+                        end
                         // Check b
                         if ($signed(b_e) == -127) begin
                             b_e <= -126;
-                        end else begin
-                            b_m[23] <= 1;
                         end
-                        state <= normalize_in;
+                        else begin
+                            b_m[26] <= 1;
+                        end
+                        state <= align;
                     end
                 end
 
-                normalize_in: begin
-                    if (a_m[23] | b_m[23]) begin
-                        state <= multiply_0;
+                align: begin
+                    if ($signed(a_e) > $signed(b_e)) begin
+                        b_e <= b_e + 1;
+                        b_m <= b_m >> 1;
+                        b_m[0] <= b_m[0] | b_m[1];
+                    end
+                    else if ($signed(a_e) < $signed(b_e)) begin
+                        a_e <= a_e + 1;
+                        a_m <= a_m >> 1;
+                        a_m[0] <= a_m[0] | a_m[1];
                     end 
-                    
                     else begin
-                        a_m <= a_m << 1;
-                        b_m <= b_m << 1;
-                        a_e <= a_e - 1;
-                        b_e <= b_e - 1;
+                        state <= add_0;
                     end
                 end
 
-                multiply_0: begin
-                    z_s <= a_s ^ b_s;
-                    z_e <= a_e + b_e + 1;
-                    product <= a_m * b_m * 4;
-                    state <= multiply_1;
+                add_0: begin
+                    z_e <= a_e;
+                    if (a_s == b_s) begin
+                        sum <= a_m + b_m;
+                        z_s <= a_s;
+                    end
+                    else begin
+                        if (a_m >= b_m) begin
+                            sum <= a_m - b_m;
+                            z_s <= a_s;
+                        end 
+                        else begin
+                            sum <= b_m - a_m;
+                            z_s <= b_s;
+                        end
+                    end
+                    state <= add_1;
                 end
 
-                multiply_1: begin
-                    z_m <= product[49:26];
-                    guard <= product[25];
-                    round_bit <= product[24];
-                    sticky <= (product[23:0] != 0);
+                add_1: begin
+                    if (sum[27]) begin
+                        z_m <= sum[27:4];
+                        guard <= sum[3];
+                        round_bit <= sum[2];
+                        sticky <= sum[1] | sum[0];
+                        z_e <= z_e + 1;
+                    end 
+                    else begin
+                        z_m <= sum[26:3];
+                        guard <= sum[2];
+                        round_bit <= sum[1];
+                        sticky <= sum[0];
+                    end
                     state <= normalize_1;
                 end
 
                 normalize_1: begin
-                    if (z_m[23] == 0) begin
+                    if (z_m[23] == 0 && $signed(z_e) > -126) begin
                         z_e <= z_e - 1;
                         z_m <= z_m << 1;
                         z_m[0] <= guard;
                         guard <= round_bit;
                         round_bit <= 0;
-                    end
+                    end 
                     else begin
                         state <= normalize_2;
                     end
@@ -218,7 +244,10 @@ module fpu_multiplier(
                     z[30:23] <= z_e[7:0] + 127;
                     z[31] <= z_s;
                     if ($signed(z_e) == -126 && z_m[23] == 0) begin
-                        z[30:23] <= 0;
+                        z[30 : 23] <= 0;
+                    end
+                    if ($signed(z_e) == -126 && z_m[23:0] == 24'h0) begin
+                        z[31] <= 1'b0; // FIX SIGN BUG: -a + a = +0.
                     end
                     // If overflow occurs, return inf
                     if ($signed(z_e) > 127) begin
@@ -237,6 +266,7 @@ module fpu_multiplier(
                         state <= get_input;
                     end
                 end
+            
             endcase
         end
     end
@@ -245,4 +275,4 @@ module fpu_multiplier(
     assign output_stb = s_output_stb;
     assign output_z = s_output_z;
 
-endmodule
+endmodule : fpu_adder
