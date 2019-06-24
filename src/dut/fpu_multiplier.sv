@@ -2,13 +2,13 @@
 //Copyright (C) Jonathan P Dawson 2013
 //2013-12-12
 module fpu_multiplier(
+        clk,
+        rst,
         input_a,
         input_b,
         input_a_stb,
         input_b_stb,
         output_z_ack,
-        clk,
-        rst,
         output_z,
         output_z_stb,
         input_a_ack,
