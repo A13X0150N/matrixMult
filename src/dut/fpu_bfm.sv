@@ -7,8 +7,8 @@ interface fpu_bfm;
 
 	bit clk=0, rst=0;
 	int input_a='0, input_b='0, output_z;
-    bit input_a_stb=0, input_b_stb=0, output_z_stb;
-    bit input_a_ack, input_b_ack, output_z_ack=0;
+    bit input_stb=0, output_stb;
+    bit input_ack, output_ack=0;
 
 
 	initial begin : clock_generator
@@ -32,34 +32,42 @@ interface fpu_bfm;
 			nop: $display("NOP");
 			
 			add: begin 
-				$display("ADD   %f + %f", $bitstoshortreal(in1), $bitstoshortreal(in2));
+				$display("ADD        %f + %f", $bitstoshortreal(in1), $bitstoshortreal(in2));
+				// Load inputs
+				@(posedge clk);
+				input_a = in1;
+				input_b = in2;
+				input_stb = 1;
+				@(input_ack);
+				@(posedge clk);
+				input_stb = 0;
+				
+				// Wait for result
+				@(output_stb);
+				result = output_z;
+				output_ack = 1;
+				@(posedge clk);
+				output_ack = 0;
 				$display(" result:   %f\n", $bitstoshortreal(result));
 			end
 
 			mult: begin
 				$display("MULTIPLY   %f * %f", $bitstoshortreal(in1), $bitstoshortreal(in2));
-				// Load multiplicand
+				// Load inputs
 				@(posedge clk);
 				input_a = in1;
-				input_a_stb = 1;
-				@(input_a_ack);
-				@(posedge clk);
-				input_a_stb = 0;
-				
-				// Load multiplier
 				input_b = in2;
-				input_b_stb = 1;
-				@(input_b_ack);
+				input_stb = 1;
+				@(input_ack);
 				@(posedge clk);
-				input_b_stb = 0;
+				input_stb = 0;
 				
 				// Wait for result
-				@(output_z_stb);
-				@(posedge clk);
+				@(output_stb);
 				result = output_z;
-				output_z_ack = 1;
+				output_ack = 1;
 				@(posedge clk);
-				output_z_ack = 0;
+				output_ack = 0;
 				$display(" result:   %f\n", $bitstoshortreal(result));
 			end
 
