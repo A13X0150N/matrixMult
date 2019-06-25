@@ -1,15 +1,15 @@
-// matrix_store.sv
+// mpu_store.sv
 
 import mm_defs::*;
 
-module matrix_store (
+module mpu_store (
 	input clk,		// Clock
 	input rst		// Synchronous reset active high
 );
 
-	import matrix_pkg::*;
+	import mpu_pkg::*;
 
 
 
 
-endmodule : matrix_store
+endmodule : mpu_store

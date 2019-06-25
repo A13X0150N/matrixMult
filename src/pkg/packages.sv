@@ -40,12 +40,12 @@ package fpu_pkg;
 endpackage : fpu_pkg
 
 
-// Matrix BFM interface definitions
-package matrix_pkg;
+// MPU BFM interface definitions
+package mpu_pkg;
     typedef enum bit [1:0] {
         nop = 2'b00,
         load = 2'b01,
         store = 2'b10
-    } matrix_operation_t;
-endpackage : matrix_pkg
+    } mpu_operation_t;
+endpackage : mpu_pkg
 
