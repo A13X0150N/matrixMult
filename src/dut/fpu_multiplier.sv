@@ -1,20 +1,17 @@
 // fpu_multiplier.sv
-
-//IEEE Floating Point Multiplier (Single Precision)
-//Copyright (C) Jonathan P Dawson 2013
-//2013-12-12
+// modified from original source:  https://github.com/dawsonjon/fpu
 
 module fpu_multiplier(
-            input         clk,
-            input         rst,
-            input  [31:0] input_a,
-            input  [31:0] input_b,
-            input         input_stb,
-            input         output_ack,
-            output [31:0] output_z,
-            output        output_stb,
-            output        input_ack
-            );
+    input         clk,
+    input         rst,
+    input  [31:0] input_a,
+    input  [31:0] input_b,
+    input         input_stb,
+    input         output_ack,
+    output [31:0] output_z,
+    output        output_stb,
+    output        input_ack
+);
 
     typedef enum logic [3:0] {
         get_input,

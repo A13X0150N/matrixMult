@@ -8,6 +8,8 @@ timeunit 1ns/100ps;
 
 // Definitions for guiding design
 package mm_defs;
+    timeunit 1ns/100ps;
+
     // Type defines
     typedef enum logic {FALSE, TRUE} bool;
 
@@ -36,3 +38,14 @@ package fpu_pkg;
         mult = 2'b10
     } fpu_operation_t;
 endpackage : fpu_pkg
+
+
+// Matrix BFM interface definitions
+package matrix_pkg;
+    typedef enum bit [1:0] {
+        nop = 2'b00,
+        load = 2'b01,
+        store = 2'b10
+    } matrix_operation_t;
+endpackage : matrix_pkg
+

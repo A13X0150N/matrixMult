@@ -9,8 +9,10 @@ import mm_defs::*;
 module top;
     initial $display("\n\tBegin tests\n");
 
-    fpu_multiplier_tb mult_test();
+    matrix_load_tb matrix_load_test();
+    //fpu_multiplier_tb mult_test();
     //fpu_adder_tb add_test();
+    //matrix_store_tb matrix_store_test();
 
     initial #(CLOCK_PERIOD*1000) $stop; 
     final $display("\n\tEnd of test\n\n");
