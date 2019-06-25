@@ -30,7 +30,7 @@ module fpu_multiplier(
         put_z
     } state_t;
 
-    state_t state;
+    state_t state=get_input;
 
     logic        s_output_stb;
     logic [31:0] s_output_z;
