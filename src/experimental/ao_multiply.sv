@@ -4,7 +4,7 @@
 // ----------------------------------------------------------------------------
 // HDL to multiply two binary numbers. Output double the length of the input.
 
-import mm_defs::*;
+import global_defs::*;
 
 module ao_multiply
 #(

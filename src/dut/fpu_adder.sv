@@ -1,8 +1,10 @@
 // fpu_adder.sv
 // modified from original source:  https://github.com/dawsonjon/fpu
 
+import global_defs::*;
 
-module fpu_adder(
+module fpu_adder
+(
     input         clk,
     input         rst,
     input  [31:0] input_a,

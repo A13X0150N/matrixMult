@@ -1,7 +1,10 @@
 // fpu_multiplier.sv
 // modified from original source:  https://github.com/dawsonjon/fpu
 
-module fpu_multiplier(
+import global_defs::*;
+
+module fpu_multiplier
+(
     input         clk,
     input         rst,
     input  [31:0] input_a,

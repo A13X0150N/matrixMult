@@ -1,6 +1,6 @@
 // fpu_bfm.sv
 
-import mm_defs::*;
+import global_defs::*;
 
 interface fpu_bfm;
     import fpu_pkg::*;
@@ -29,10 +29,13 @@ interface fpu_bfm;
 
     task send_op(input fpu_operation_t op, input int in1, input int in2, output int result);
         unique case(op)
-            nop: $display("NOP");
+            NOP: begin
+                $display("FPU NOP");
+                @(posedge clk);
+            end
             
-            add: begin 
-                $display("ADD        %f + %f", $bitstoshortreal(in1), $bitstoshortreal(in2));
+            ADD: begin 
+                $display("FPU ADD        %f + %f", $bitstoshortreal(in1), $bitstoshortreal(in2));
                 // Load inputs
                 @(posedge clk);
                 input_a = in1;
@@ -48,11 +51,11 @@ interface fpu_bfm;
                 output_ack = 1;
                 @(posedge clk);
                 output_ack = 0;
-                $display(" result:   %f\n", $bitstoshortreal(result));
+                $display("FPU ADD result:   %f\n", $bitstoshortreal(result));
             end
 
-            mult: begin
-                $display("MULTIPLY   %f * %f", $bitstoshortreal(in1), $bitstoshortreal(in2));
+            MULT: begin
+                $display("FPU MULTIPLY   %f * %f", $bitstoshortreal(in1), $bitstoshortreal(in2));
                 // Load inputs
                 @(posedge clk);
                 input_a = in1;
@@ -68,7 +71,7 @@ interface fpu_bfm;
                 output_ack = 1;
                 @(posedge clk);
                 output_ack = 0;
-                $display(" result:   %f\n", $bitstoshortreal(result));
+                $display("FPU MULTIPLY result:   %f\n", $bitstoshortreal(result));
             end
 
         endcase

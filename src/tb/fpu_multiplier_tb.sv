@@ -1,13 +1,13 @@
 // fpu_multiplier_tb.sv
 
-import mm_defs::*;
+import global_defs::*;
 
 module fpu_multiplier_tb;
     import fpu_pkg::*;
 
     fpu_bfm fpu_bfm();
 
-    fpu_operation_t op_set=nop;
+    fpu_operation_t op_set=NOP;
     int test_a='0, test_b=32'h42b1cccd, result='0;
 
     fpu_multiplier dut(
@@ -28,7 +28,7 @@ module fpu_multiplier_tb;
         forever begin
             test_a += 1;
             test_b = 32'h42b1cccd;
-            op_set = mult;
+            op_set = MULT;
             fpu_bfm.send_op(op_set, $shortrealtobits($itor(test_a)), test_b, result);
         end
     end

@@ -1,6 +1,6 @@
 // mpu_store_tb.sv
 
-import mm_defs::*;
+import global_defs::*;
 
 module mpu_store_tb;
 

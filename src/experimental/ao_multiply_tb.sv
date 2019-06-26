@@ -4,7 +4,7 @@
 // ----------------------------------------------------------------------------
 // Simple testbench for binary multiplier. Eventually migrate to UVM.
 
-import mm_defs::*;
+import global_defs::*;
 
 module ao_multiply_tb
 (
