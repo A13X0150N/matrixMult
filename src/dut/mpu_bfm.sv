@@ -6,16 +6,22 @@ interface mpu_bfm;
 	import mpu_pkg::*;
 
 	// Control signals
-	logic clk, rst, en, write_en, error, ack;
+	logic clk;			// Clock signal
+	logic rst;			// Synchronous reset, active high
+	logic en;			// Chip enable
+	logic write_en;		// Write enable
+	logic ack;			// Acknowledge signal
+	logic error;		// Error signal
 
 	// Input matrix from file or memory
 	logic [FP-1:0] element;						// [32|64]-bit float, matrix element
-	logic [MBITS:0] matrix_m_size;				// m dimension of input matrix
-	logic [NBITS:0] matrix_n_size;				// n dimension of input matrix
-	logic [MATRIX_REG_SIZE-1:0] matrix_addr;	// Address in register file to store matrix	
+	logic [MBITS:0] matrix_m_size;				// m-dimension of input matrix
+	logic [NBITS:0] matrix_n_size;				// n-dimension of input matrix
+	logic [MATRIX_REG_SIZE-1:0] load_addr;		// Matrix address to read matrix in
 
 	// Output to register file
-	logic [MATRIX_REG_SIZE-1:0] write_addr;		// Matrix address	
+	logic [MATRIX_REG_SIZE-1:0] reg_load_addr;	// Matrix register address to read matrix in
+	logic [MATRIX_REG_SIZE-1:0] reg_store_addr;	// Matrix register address to write matix out
 	logic [FP-1:0] element_out;					// Matrix data
 	logic [MBITS:0] m;							// Matrix row location
 	logic [NBITS:0] n;							// Matrix column location
@@ -34,7 +40,8 @@ interface mpu_bfm;
     	element = 'x;
     	matrix_m_size = '0;
     	matrix_n_size = '0;
-    	matrix_addr = 'x;
+    	//reg_load_addr = 'x;
+    	reg_store_addr = 'x;
     	idx = '0;
         rst = 0;
         repeat (10) @(posedge clk);
@@ -62,7 +69,7 @@ interface mpu_bfm;
             	@(posedge clk);
             	matrix_m_size = in_m;
             	matrix_n_size = in_n;
-            	matrix_addr = matrix_addr1;
+            	reg_load_addr = matrix_addr1;
             	idx = '0;
             	en = 1;
             	@(ack);

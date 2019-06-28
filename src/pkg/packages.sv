@@ -33,6 +33,8 @@ package global_defs;
     parameter MBITS = $clog2(M);
     parameter KBITS = $clog2(K);
     parameter NBITS = $clog2(N);
+
+    // Size of matrix register file
     parameter MATRIX_REGISTERS = 4;
     parameter MATRIX_REG_SIZE = $clog2(MATRIX_REGISTERS);
 

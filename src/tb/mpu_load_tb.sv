@@ -12,11 +12,11 @@ module mpu_load_tb;
 		.clk 			(mpu_bfm.clk),
 		.rst 			(mpu_bfm.rst),
 		.write_en		(mpu_bfm.write_en),
-		.write_addr		(mpu_bfm.write_addr),
+		.reg_load_addr	(mpu_bfm.reg_load_addr),
 		.element 		(mpu_bfm.element_out),
 		.m 				(mpu_bfm.m),
 		.n 				(mpu_bfm.n),
-		.matrix_addr	(mpu_bfm.matrix_addr),
+		.reg_store_addr	(mpu_bfm.reg_store_addr),
 		.matrix_out		(mpu_bfm.matrix_out)
 	);
 
@@ -29,13 +29,13 @@ module mpu_load_tb;
 		.element 		(mpu_bfm.element),
 		.matrix_m_size 	(mpu_bfm.matrix_m_size),
 		.matrix_n_size 	(mpu_bfm.matrix_n_size),
-		.matrix_addr 	(mpu_bfm.matrix_addr),
+		.load_addr 		(mpu_bfm.load_addr),
 		.error 			(mpu_bfm.error),
 		.ack 			(mpu_bfm.ack),
 
 		// Output to register file
 		.write_en		(mpu_bfm.write_en),
-		.write_addr 	(mpu_bfm.write_addr),
+		.reg_load_addr 	(mpu_bfm.reg_load_addr),
 		.element_out 	(mpu_bfm.element_out),
 		.m 				(mpu_bfm.m),
 		.n 				(mpu_bfm.n)

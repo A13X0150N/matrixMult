@@ -11,19 +11,19 @@ module mpu_load
 	input en,			// Signal input data
 
 	// Input matrix from file or memory
-	input logic [FP-1:0] element,					// 32-bit float, matrix element
-	input logic [MBITS:0] matrix_m_size,			// m dimension of input matrix
-	input logic [NBITS:0] matrix_n_size,			// n dimension of input matrix
-	input logic [MATRIX_REG_SIZE-1:0] matrix_addr,	// Matrix address	
-	output logic error=0,							// Error detection
-	output logic ack=0,								// Receive data handshake signal
+	input logic [FP-1:0] element,						// 32-bit float, matrix element
+	input logic [MBITS:0] matrix_m_size,				// m-dimension of input matrix
+	input logic [NBITS:0] matrix_n_size,				// n-dimension of input matrix
+	input logic [MATRIX_REG_SIZE-1:0] load_addr,		// Matrix address	
+	output logic error=0,								// Error detection
+	output logic ack=0,									// Receive data handshake signal
 
 	// Output to register file
-	output logic write_en,							// Matrix write request
-	output logic [MATRIX_REG_SIZE-1:0] write_addr,	// Matrix address	
-	output logic [FP-1:0] element_out,				// Matrix data
-	output logic [MBITS:0] m,						// Matrix row location
-	output logic [NBITS:0] n						// Matrix column location
+	output logic write_en,								// Matrix write request
+	output logic [MATRIX_REG_SIZE-1:0] reg_load_addr,	// Matrix address load location	
+	output logic [FP-1:0] element_out,					// Matrix data
+	output logic [MBITS:0] m,							// Matrix row location
+	output logic [NBITS:0] n							// Matrix column location
 );
 
 	import mpu_pkg::*;
@@ -42,7 +42,7 @@ module mpu_load
 			LOAD_IDLE: begin
 				next_state = LOAD_IDLE;
 				ack = 0;
-				write_addr = 'x;
+				reg_load_addr = 'x;
 				write_en = 0;
 				m_size = '0;
 				n_size = '0;
@@ -66,7 +66,7 @@ module mpu_load
 						col_ptr = '0;
 						m_size = matrix_m_size;
 						n_size = matrix_n_size;
-						write_addr = matrix_addr;
+						reg_load_addr = load_addr;
 						next_state = LOAD_MATRIX;
 					end
 				end
