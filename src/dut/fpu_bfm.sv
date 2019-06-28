@@ -35,7 +35,6 @@ interface fpu_bfm;
             end
             
             ADD: begin 
-                $display("FPU ADD        %f + %f", $bitstoshortreal(in1), $bitstoshortreal(in2));
                 // Load inputs
                 @(posedge clk);
                 input_a = in1;
@@ -51,11 +50,10 @@ interface fpu_bfm;
                 output_ack = 1;
                 @(posedge clk);
                 output_ack = 0;
-                $display("FPU ADD result:   %f\n", $bitstoshortreal(result));
+                $display("FPU ADD result:\t %f + %f = %f\n", $bitstoshortreal(in1), $bitstoshortreal(in2), $bitstoshortreal(result));
             end
 
             MULT: begin
-                $display("FPU MULTIPLY   %f * %f", $bitstoshortreal(in1), $bitstoshortreal(in2));
                 // Load inputs
                 @(posedge clk);
                 input_a = in1;
@@ -71,7 +69,7 @@ interface fpu_bfm;
                 output_ack = 1;
                 @(posedge clk);
                 output_ack = 0;
-                $display("FPU MULTIPLY result:   %f\n", $bitstoshortreal(result));
+                $display("FPU MULTIPLY result:\t %f * %f = %f\n", $bitstoshortreal(in1), $bitstoshortreal(in2), $bitstoshortreal(result));
             end
 
         endcase

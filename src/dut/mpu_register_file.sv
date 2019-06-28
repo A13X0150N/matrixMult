@@ -14,7 +14,7 @@ module mpu_register_file
 	input logic [NBITS:0] n,							// Matrix column location
 
 	input logic [MATRIX_REG_SIZE-1:0] reg_store_addr,	// Matrix address to write out from
-	output logic [FP-1:0] matrix_out  [M][N]			// Matrix output data
+	output logic [FP-1:0] matrix_out [M][N]				// Matrix output data
 	//output logic read_stb,
 );
 
@@ -28,14 +28,16 @@ module mpu_register_file
 		end
 	end : matrix_load
 
-	//assign matrix_out = read_addr ? matrix_register_array[read_addr] : '0;
-	assign matrix_out = matrix_register_array[reg_store_addr];
+	//assign matrix_out = matrix_register_array[reg_store_addr];
 
 	// Matrix register output
-	//always_ff @(posedge clk) begin : matrix_store
+	always_ff @(posedge clk) begin : matrix_store
+
+		//if (reg_store_addr) begin
+			matrix_out <= matrix_register_array[reg_store_addr];
+		//end
 
 
-
-	//end : matrix_store
+	end : matrix_store
 
 endmodule : mpu_register_file

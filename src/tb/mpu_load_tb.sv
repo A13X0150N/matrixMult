@@ -54,6 +54,7 @@ module mpu_load_tb;
 		in_n = 2;
 		matrix_addr1 = 0;
 		matrix_addr2 = 1;
+		mpu_bfm.reg_store_addr = '0;
 		foreach(in_matrix[i]) in_matrix[i] = '0;
 		mpu_bfm.send_op(op, in_matrix, in_m, in_n, matrix_addr1, matrix_addr2);
 		op = LOAD;
@@ -62,14 +63,14 @@ module mpu_load_tb;
 		in_matrix[2] = 32'hc0200000;		// -2.5
 		in_matrix[3] = 32'h3e000000;		// 0.125
 		mpu_bfm.send_op(op, in_matrix, in_m, in_n, matrix_addr1, matrix_addr2);
+
+		@(posedge mpu_bfm.clk);
+		$display("\n\tTEST MATRIX LOAD\n\t%f\t%f\n\t%f\t%f\n", 
+					$bitstoshortreal(mpu_bfm.matrix_out[0][0]),
+					$bitstoshortreal(mpu_bfm.matrix_out[0][1]),
+					$bitstoshortreal(mpu_bfm.matrix_out[1][0]),
+					$bitstoshortreal(mpu_bfm.matrix_out[1][1]));
 	end
-
-	final $display("\n\tTEST MATRIX LOAD\n\t%f\t%f\n\t%f\t%f\n", 
-					$bitstoshortreal(matrix_register_file.matrix_register_array[0][0][0]),
-					$bitstoshortreal(matrix_register_file.matrix_register_array[0][0][1]),
-					$bitstoshortreal(matrix_register_file.matrix_register_array[0][1][0]),
-					$bitstoshortreal(matrix_register_file.matrix_register_array[0][1][1]));
-
 
 
 endmodule : mpu_load_tb
