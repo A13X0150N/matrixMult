@@ -9,7 +9,8 @@ interface mpu_bfm;
 	logic clk;			// Clock signal
 	logic rst;			// Synchronous reset, active high
 	logic en;			// Chip enable
-	logic write_en;		// Write enable
+	logic load_en;		// Load enable
+	logic store_en;		// Store enable
 	logic ack;			// Acknowledge signal
 	logic error;		// Error signal
 
@@ -23,10 +24,12 @@ interface mpu_bfm;
 	logic [MATRIX_REG_SIZE-1:0] reg_load_addr;	// Matrix register address to read matrix in
 	logic [MATRIX_REG_SIZE-1:0] reg_store_addr;	// Matrix register address to write matix out
 	logic [FP-1:0] element_out;					// Matrix data
-	logic [MBITS:0] m;							// Matrix row location
-	logic [NBITS:0] n;							// Matrix column location
+	logic [MBITS:0] m, reg_m_out, m_size;		// Matrix row location and size
+	logic [NBITS:0] n, reg_n_out, n_size;		// Matrix column location and size
+	logic reg_store_complete;					// MPU is finished outputting matrix to memory
 
-	logic [FP-1:0] matrix_out [M][N];			// Entire matrix output, a 2x2 32-bit matrix will have 128 signals for arithmetic!
+	logic [FP-1:0] reg_element_out; // [M][N];	// Entire matrix output, a 2x2 32-bit matrix will have 128 signals for arithmetic!
+	logic reg_m_out
 	logic [$clog2(M*N)-1:0] idx;				// Vectorized matrix index
 
     initial begin : clock_generator

@@ -9,8 +9,7 @@ import global_defs::*;
 module top;
     initial $display("\n\tBegin tests\n");
 
-    mpu_load_tb mpu_load_test();
-    mpu_store_tb mpu_store_test();    
+    mpu_load_store_tb mpu_memory_test();  
     //fpu_multiplier_tb mult_test();
     //fpu_adder_tb add_test();
 

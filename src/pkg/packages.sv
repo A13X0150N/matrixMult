@@ -71,5 +71,10 @@ package mpu_pkg;
         LOAD_MATRIX = 1'b1
     } load_state_t;
 
+    typedef enum logic {
+        STORE_IDLE   = 1'b0,
+        STORE_MATRIX = 1'b1
+    } store_state_t;
+
 endpackage : mpu_pkg
 

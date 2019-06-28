@@ -1,8 +1,8 @@
-// mpu_load_tb.sv
+// mpu_load_store_tb.sv
 
 import global_defs::*;
 
-module mpu_load_tb;
+module mpu_load_store_tb;
 
 	import mpu_pkg::*;
 
@@ -11,16 +11,22 @@ module mpu_load_tb;
 	mpu_register_file matrix_register_file (
 		.clk 				(mpu_bfm.clk),
 		.rst 				(mpu_bfm.rst),
-		.write_en			(mpu_bfm.write_en),
+		.reg_load_en		(mpu_bfm.write_en),
 		.reg_load_addr		(mpu_bfm.reg_load_addr),
-		.reg_element_in 	(mpu_bfm.element_out),
-		.reg_m_in 			(mpu_bfm.m),
-		.reg_n_in 			(mpu_bfm.n),
+		.reg_m_load_loc		(mpu_bfm.m),
+		.reg_n_load_loc		(mpu_bfm.n),
+		.reg_element_in 	(mpu_bfm.element_out),		
+		.reg_m_size			(mpu_bfm.matrix_m_size),
+		.reg_n_size			(mpu_bfm.matrix_n_size),
+		.reg_store_en		(mpu_bfm.store_en),
 		.reg_store_addr		(mpu_bfm.reg_store_addr),
-		.matrix_out			(mpu_bfm.matrix_out)
+		.reg_element_out	(mpu_bfm.reg_element_out),
+		.reg_m_store_loc  	(mpu_bfm.reg_m_out),
+		.reg_n_store_loc	(mpu_bfm.reg_n_out),
+		.reg_store_complete (mpu_bfm.reg_store_complete)
 	);
 
-	mpu_load dut (
+	mpu_load load_dut (
 		.clk  				(mpu_bfm.clk),
 		.rst  				(mpu_bfm.rst),
 		.en   				(mpu_bfm.en),
@@ -34,11 +40,17 @@ module mpu_load_tb;
 		.ack 				(mpu_bfm.ack),
 
 		// Output to register file
-		.reg_write_en		(mpu_bfm.write_en),
+		.reg_load_en		(mpu_bfm.load_en),
 		.reg_load_addr	 	(mpu_bfm.reg_load_addr),
 		.reg_element_out	(mpu_bfm.element_out),
 		.reg_m_out 			(mpu_bfm.m),
 		.reg_n_out 			(mpu_bfm.n)
+	);
+
+	mpu_store store_dut (
+		.clk  				(mpu_bfm.clk),
+		.rst  				(mpu_bfm.rst),
+		.en   				(mpu_bfm.en)
 	);
 
 	mpu_operation_t op;
@@ -66,10 +78,10 @@ module mpu_load_tb;
 
 		@(posedge mpu_bfm.clk);
 		$display("\n\tTEST MATRIX LOAD\n\t%f\t%f\n\t%f\t%f\n", 
-					$bitstoshortreal(mpu_bfm.matrix_out[0][0]),
-					$bitstoshortreal(mpu_bfm.matrix_out[0][1]),
-					$bitstoshortreal(mpu_bfm.matrix_out[1][0]),
-					$bitstoshortreal(mpu_bfm.matrix_out[1][1]));
+					$bitstoshortreal(mpu_bfm.reg_element_out[0][0]),
+					$bitstoshortreal(mpu_bfm.reg_element_out[0][1]),
+					$bitstoshortreal(mpu_bfm.reg_element_out[1][0]),
+					$bitstoshortreal(mpu_bfm.reg_element_out[1][1]));
 	end
 
 
