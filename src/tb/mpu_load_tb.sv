@@ -9,36 +9,36 @@ module mpu_load_tb;
 	mpu_bfm mpu_bfm();
 
 	mpu_register_file matrix_register_file (
-		.clk 			(mpu_bfm.clk),
-		.rst 			(mpu_bfm.rst),
-		.write_en		(mpu_bfm.write_en),
-		.reg_load_addr	(mpu_bfm.reg_load_addr),
-		.element 		(mpu_bfm.element_out),
-		.m 				(mpu_bfm.m),
-		.n 				(mpu_bfm.n),
-		.reg_store_addr	(mpu_bfm.reg_store_addr),
-		.matrix_out		(mpu_bfm.matrix_out)
+		.clk 				(mpu_bfm.clk),
+		.rst 				(mpu_bfm.rst),
+		.write_en			(mpu_bfm.write_en),
+		.reg_load_addr		(mpu_bfm.reg_load_addr),
+		.reg_element_in 	(mpu_bfm.element_out),
+		.reg_m_in 			(mpu_bfm.m),
+		.reg_n_in 			(mpu_bfm.n),
+		.reg_store_addr		(mpu_bfm.reg_store_addr),
+		.matrix_out			(mpu_bfm.matrix_out)
 	);
 
 	mpu_load dut (
-		.clk  			(mpu_bfm.clk),
-		.rst  			(mpu_bfm.rst),
-		.en   			(mpu_bfm.en),
+		.clk  				(mpu_bfm.clk),
+		.rst  				(mpu_bfm.rst),
+		.en   				(mpu_bfm.en),
 
 		// Input matrix from file or memory
-		.element 		(mpu_bfm.element),
-		.matrix_m_size 	(mpu_bfm.matrix_m_size),
-		.matrix_n_size 	(mpu_bfm.matrix_n_size),
-		.load_addr 		(mpu_bfm.load_addr),
-		.error 			(mpu_bfm.error),
-		.ack 			(mpu_bfm.ack),
+		.element 			(mpu_bfm.element),
+		.matrix_m_size 		(mpu_bfm.matrix_m_size),
+		.matrix_n_size 		(mpu_bfm.matrix_n_size),
+		.load_addr 			(mpu_bfm.load_addr),
+		.error 				(mpu_bfm.error),
+		.ack 				(mpu_bfm.ack),
 
 		// Output to register file
-		.write_en		(mpu_bfm.write_en),
-		.reg_load_addr 	(mpu_bfm.reg_load_addr),
-		.element_out 	(mpu_bfm.element_out),
-		.m 				(mpu_bfm.m),
-		.n 				(mpu_bfm.n)
+		.reg_write_en		(mpu_bfm.write_en),
+		.reg_load_addr	 	(mpu_bfm.reg_load_addr),
+		.reg_element_out	(mpu_bfm.element_out),
+		.reg_m_out 			(mpu_bfm.m),
+		.reg_n_out 			(mpu_bfm.n)
 	);
 
 	mpu_operation_t op;

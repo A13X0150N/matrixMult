@@ -19,11 +19,11 @@ module mpu_load
 	output logic ack=0,									// Receive data handshake signal
 
 	// Output to register file
-	output logic write_en,								// Matrix write request
+	output logic reg_write_en,							// Matrix write request
 	output logic [MATRIX_REG_SIZE-1:0] reg_load_addr,	// Matrix address load location	
-	output logic [FP-1:0] element_out,					// Matrix data
-	output logic [MBITS:0] m,							// Matrix row location
-	output logic [NBITS:0] n							// Matrix column location
+	output logic [FP-1:0] reg_element_out,				// Matrix data
+	output logic [MBITS:0] reg_m_out,					// Matrix row location
+	output logic [NBITS:0] reg_n_out					// Matrix column location
 );
 
 	import mpu_pkg::*;
@@ -42,13 +42,13 @@ module mpu_load
 			LOAD_IDLE: begin
 				next_state = LOAD_IDLE;
 				ack = 0;
-				reg_load_addr = 'x;
-				write_en = 0;
 				m_size = '0;
 				n_size = '0;
-				m = 0;
-				n = 0;
-				element_out = 'x;
+				reg_load_addr = 'x;
+				reg_write_en = 0;
+				reg_m_out = 0;
+				reg_n_out = 0;
+				reg_element_out = 'x;
 
 				// Input ready
 				if (en) begin
@@ -75,11 +75,11 @@ module mpu_load
 			LOAD_MATRIX: begin
 				if (ack) begin
 					next_state = LOAD_MATRIX;
-					write_en = 1;
-					element_out = element;
+					reg_write_en = 1;
+					reg_element_out = element;
 
-					m = row_ptr;
-					n = col_ptr;
+					reg_m_out = row_ptr;
+					reg_n_out = col_ptr;
 
 					++col_ptr;
 					if (col_ptr == n_size) begin
