@@ -67,7 +67,7 @@ interface mpu_bfm;
 
     // Send an operation into an MPU
     task send_op(   input mpu_operation_t op,
-                    input logic [FP-1:0] in_matrix [M*N], 
+                    input logic [FP-1:0] in_matrix [NUM_ELEMENTS], 
                     input logic [MBITS:0] in_m, 
                     input logic [NBITS:0] in_n,
                     input logic [MATRIX_REG_SIZE-1:0] matrix_addr1, matrix_addr2

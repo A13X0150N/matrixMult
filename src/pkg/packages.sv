@@ -18,7 +18,7 @@ package global_defs;
     parameter DP = 64;  // Double precions
     parameter FP = SP;  // Selection for design
 
-    // Multiplication methods, only make one selection (TODO: MULT_WALLACE, MULT_BOOTH)
+    // Multiplication methods, only make one selection (For experimental directory)
     parameter MULT_SIMULATION = 0;
     parameter MULT_BOOTH_RADIX4 = 1;
     parameter MULT_WALLACE = 0;
@@ -28,14 +28,15 @@ package global_defs;
 
     // Maximum matrix dimensions (m x k)(k x n)
     parameter M = 2;
-    parameter K = 2;
+    parameter K = 3;
     parameter N = 2;
     parameter MBITS = $clog2(M);
     parameter KBITS = $clog2(K);
     parameter NBITS = $clog2(N);
+    parameter NUM_ELEMENTS = M*N;
 
     // Size of matrix register file
-    parameter MATRIX_REGISTERS = 4;
+    parameter MATRIX_REGISTERS = 16;
     parameter MATRIX_REG_SIZE = $clog2(MATRIX_REGISTERS);
 
 endpackage : global_defs

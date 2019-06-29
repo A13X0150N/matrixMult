@@ -82,7 +82,7 @@ module mpu_load_store_tb;
 
     // Test variables
     mpu_operation_t op;
-    logic [FP-1:0] in_matrix [M*N];
+    logic [FP-1:0] in_matrix [NUM_ELEMENTS];
     logic [MBITS:0] in_m;
     logic [NBITS:0] in_n;
     logic [MATRIX_REG_SIZE-1:0] matrix_addr1, matrix_addr2;
@@ -91,40 +91,72 @@ module mpu_load_store_tb;
 
     initial begin
         mpu_bfm.reset_mpu();
+        
         op = NOP;
-        in_m = 2;
-        in_n = 2;
+        in_m = M;
+        in_n = N;
         matrix_addr1 = 0;
         matrix_addr2 = 1;
         foreach(in_matrix[i]) in_matrix[i] = '0;
         mpu_bfm.send_op(op, in_matrix, in_m, in_n, matrix_addr1, matrix_addr2);
+        
         op = LOAD;
         in_matrix[0] = 32'h3f800000;        // 1.0
         in_matrix[1] = 32'h424951ec;        // 50.33
         in_matrix[2] = 32'hc0200000;        // -2.5
+
         in_matrix[3] = 32'h3e000000;        // 0.125
+        in_matrix[4] = 32'hbeaaaa9f;        // 0.333333
+        in_matrix[5] = 32'h4e932c06;        // 1234570000
+
+        in_matrix[6] = 32'h00000000;        // 0.0
+        in_matrix[7] = 32'hb6a7c5ac;        // -0.000005
+        in_matrix[8] = 32'hd0132c06;        // -9876540000
+
+
+
         mpu_bfm.send_op(op, in_matrix, in_m, in_n, matrix_addr1, matrix_addr2);
+        
         op = NOP;
         foreach(in_matrix[i]) in_matrix[i] = '0;
-        matrix_addr1 = 0;
-        op = STORE;
         mpu_bfm.send_op(op, in_matrix, in_m, in_n, matrix_addr1, matrix_addr2);
+
+        op = STORE;
+        matrix_addr1 = 0;
+        //mpu_bfm.send_op(op, in_matrix, in_m, in_n, matrix_addr1, matrix_addr2);
         @(posedge mpu_bfm.clk);
         
         /*
-        $display("\n\tTEST MATRIX LOAD\n\t%f\t%f\n\t%f\t%f\n", 
+        $display("\n\tTEST MATRIX LOAD\n\t %f\t%f \n\t %f\t%f \n", 
                     $bitstoshortreal(mpu_bfm.reg_element_out[0][0]),
                     $bitstoshortreal(mpu_bfm.reg_element_out[0][1]),
                     $bitstoshortreal(mpu_bfm.reg_element_out[1][0]),
                     $bitstoshortreal(mpu_bfm.reg_element_out[1][1]));
         */
-        /*
-        $display("\n\tTEST MATRIX LOAD\n\t%f\t%f\n\t%f\t%f\n", 
-                    $bitstoshortreal(matrix_register_file.matrix_register_array[0][0][0]),
-                    $bitstoshortreal(matrix_register_file.matrix_register_array[0][0][1]),
-                    $bitstoshortreal(matrix_register_file.matrix_register_array[0][1][0]),
-                    $bitstoshortreal(matrix_register_file.matrix_register_array[0][1][1]));
-        */
+
+        
+        if (NUM_ELEMENTS == 4) begin
+            // 2x2 test
+            $display("\n\t2x2 MATRIX REGISTER[0] DUMP\n\t %f\t%f \n\t %f\t%f \n", 
+                        $bitstoshortreal(matrix_register_file.matrix_register_array[0][0][0]),
+                        $bitstoshortreal(matrix_register_file.matrix_register_array[0][0][1]),
+                        $bitstoshortreal(matrix_register_file.matrix_register_array[0][1][0]),
+                        $bitstoshortreal(matrix_register_file.matrix_register_array[0][1][1]));
+        end
+        else if (NUM_ELEMENTS == 9) begin
+            // 3x3 test
+            $display("\n\t3x3 MATRIX REGISTER[0] DUMP\n\t %f\t%f\t%f \n\t %f\t%f\t%f \n\t %f\t%f\t%f \n", 
+                        $bitstoshortreal(matrix_register_file.matrix_register_array[0][0][0]),
+                        $bitstoshortreal(matrix_register_file.matrix_register_array[0][0][1]),
+                        $bitstoshortreal(matrix_register_file.matrix_register_array[0][0][2]),
+                        $bitstoshortreal(matrix_register_file.matrix_register_array[0][1][0]),
+                        $bitstoshortreal(matrix_register_file.matrix_register_array[0][1][1]),
+                        $bitstoshortreal(matrix_register_file.matrix_register_array[0][1][2]),
+                        $bitstoshortreal(matrix_register_file.matrix_register_array[0][2][0]),
+                        $bitstoshortreal(matrix_register_file.matrix_register_array[0][2][1]),
+                        $bitstoshortreal(matrix_register_file.matrix_register_array[0][2][2]));
+        end
+            
     end
 
 
