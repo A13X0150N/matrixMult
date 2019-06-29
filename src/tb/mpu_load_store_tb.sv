@@ -17,16 +17,18 @@ module mpu_load_store_tb;
 
         // To MPU load
         .reg_load_addr_in       (mpu_bfm.reg_load_addr),
+        .reg_load_element_in    (mpu_bfm.reg_load_element),         
         .reg_i_load_loc_in      (mpu_bfm.reg_i_load_loc),
         .reg_j_load_loc_in      (mpu_bfm.reg_j_load_loc),
-        .reg_load_element_in    (mpu_bfm.reg_load_element),     
-        .reg_m_size_in          (mpu_bfm.reg_m_size),
-        .reg_n_size_in          (mpu_bfm.reg_n_size),
+        .reg_m_load_size_in     (mpu_bfm.reg_m_load_size),
+        .reg_n_load_size_in     (mpu_bfm.reg_n_load_size),
 
         // To MPU store
         .reg_store_addr_in      (mpu_bfm.reg_store_addr),
         .reg_i_store_loc_in     (mpu_bfm.reg_i_store_loc),
         .reg_j_store_loc_in     (mpu_bfm.reg_j_store_loc),
+        .reg_m_store_size_out   (mpu_bfm.reg_m_store_size),
+        .reg_n_store_size_out   (mpu_bfm.reg_n_store_size),
         .reg_store_element_out  (mpu_bfm.reg_store_element),
         .reg_store_complete_out (mpu_bfm.reg_store_complete)
     );
@@ -38,9 +40,9 @@ module mpu_load_store_tb;
         .load_en_in             (mpu_bfm.load_en),
 
         // To memory
-        .mem_element_in         (mpu_bfm.mem_load_element),
-        .mem_m_size_in          (mpu_bfm.mem_load_m_size),
-        .mem_n_size_in          (mpu_bfm.mem_load_n_size),
+        .mem_load_element_in    (mpu_bfm.mem_load_element),
+        .mem_m_load_size_in     (mpu_bfm.mem_m_load_size),
+        .mem_n_load_size_in     (mpu_bfm.mem_n_load_size),
         .mem_load_addr_in       (mpu_bfm.mem_load_addr),
         .mem_load_error_out     (mpu_bfm.mem_load_error),
         .mem_load_ack_out       (mpu_bfm.mem_load_ack),
@@ -51,9 +53,8 @@ module mpu_load_store_tb;
         .reg_load_element_out   (mpu_bfm.reg_load_element),
         .reg_i_load_loc_out     (mpu_bfm.reg_i_load_loc),
         .reg_j_load_loc_out     (mpu_bfm.reg_j_load_loc),
-        .reg_m_size_out         (mpu_bfm.reg_m_size),
-        .reg_n_size_out         (mpu_bfm.reg_n_size)
-
+        .reg_m_load_size_out    (mpu_bfm.reg_m_load_size),
+        .reg_n_load_size_out    (mpu_bfm.reg_n_load_size)
     );
 
     mpu_store store_dut (
@@ -63,16 +64,19 @@ module mpu_load_store_tb;
         .store_en_in            (mpu_bfm.store_en),
 
         // To matrix register file
+        .reg_store_addr_out     (mpu_bfm.reg_store_addr),
         .reg_element_in         (mpu_bfm.reg_store_element),
         .reg_i_store_loc_in     (mpu_bfm.reg_i_store_loc),
         .reg_j_store_loc_in     (mpu_bfm.reg_j_store_loc),
         .reg_store_complete_in  (mpu_bfm.reg_store_complete),
+        .reg_m_store_size_in    (mpu_bfm.reg_m_store_size),
+        .reg_n_store_size_in    (mpu_bfm.reg_n_store_size),
 
         // To memory
         .mem_store_en_out       (mpu_bfm.mem_store_en),
         .mem_store_element_out  (mpu_bfm.mem_store_element),
-        .mem_m_size_out         (mpu_bfm.mem_store_m_size),
-        .mem_n_size_out         (mpu_bfm.mem_store_n_size)
+        .mem_m_store_size_out   (mpu_bfm.mem_m_store_size),
+        .mem_n_store_size_out   (mpu_bfm.mem_n_store_size)
     );
 
     // Test variables
@@ -89,7 +93,6 @@ module mpu_load_store_tb;
         in_n = 2;
         matrix_addr1 = 0;
         matrix_addr2 = 1;
-        mpu_bfm.reg_store_addr = '0;
         foreach(in_matrix[i]) in_matrix[i] = '0;
         mpu_bfm.send_op(op, in_matrix, in_m, in_n, matrix_addr1, matrix_addr2);
         op = LOAD;
@@ -100,13 +103,15 @@ module mpu_load_store_tb;
         mpu_bfm.send_op(op, in_matrix, in_m, in_n, matrix_addr1, matrix_addr2);
 
         @(posedge mpu_bfm.clk);
+        
+        /*
         $display("\n\tTEST MATRIX LOAD\n\t%f\t%f\n\t%f\t%f\n", 
                     $bitstoshortreal(mpu_bfm.reg_element_out[0][0]),
                     $bitstoshortreal(mpu_bfm.reg_element_out[0][1]),
                     $bitstoshortreal(mpu_bfm.reg_element_out[1][0]),
                     $bitstoshortreal(mpu_bfm.reg_element_out[1][1]));
-        
-        /* 
+        */
+        /*
         $display("\n\tTEST MATRIX LOAD\n\t%f\t%f\n\t%f\t%f\n", 
                     $bitstoshortreal(matrix_register_file.matrix_register_array[0][0][0]),
                     $bitstoshortreal(matrix_register_file.matrix_register_array[0][0][1]),

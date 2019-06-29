@@ -16,24 +16,26 @@ interface mpu_bfm;
 
     // Input/Output matrix from file or memory
     logic [FP-1:0] mem_load_element;            // [32|64]-bit float, matrix element
-    logic [MBITS:0] mem_load_m_size;            // m-dimension of input matrix
-    logic [NBITS:0] mem_load_n_size;            // n-dimension of input matrix
+    logic [MBITS:0] mem_m_load_size;            // m-dimension of input matrix
+    logic [NBITS:0] mem_n_load_size;            // n-dimension of input matrix
     logic [MATRIX_REG_SIZE-1:0] mem_load_addr;  // Matrix address to load matrix in
     logic [MATRIX_REG_SIZE-1:0] mem_store_addr; // Matrix address to load matrix in
     logic mem_load_error;                       // Error signal     
     logic mem_load_ack;                         // Acknowledge signal
     logic mem_store_en;                         // Memory store enable signal
     logic [FP-1:0] mem_store_element;           // Element to send out to memory
-    logic [MBITS:0] mem_store_m_size;           // Row size of output matrix
-    logic [NBITS:0] mem_store_n_size;           // Column size of output matrix
+    logic [MBITS:0] mem_m_store_size;           // Row size of output matrix
+    logic [NBITS:0] mem_n_store_size;           // Column size of output matrix
 
     // Output to register file
     logic [MATRIX_REG_SIZE-1:0] reg_load_addr;  // Matrix register address to load matrix in
     logic [MATRIX_REG_SIZE-1:0] reg_store_addr; // Matrix register address to write matix out
     logic [FP-1:0] reg_load_element;            // Matrix load data element
     logic [FP-1:0] reg_store_element;           // Matrix store data element
-    logic [MBITS:0] reg_m_size;                 // Register matrix row size
-    logic [NBITS:0] reg_n_size;                 // Register matrix column size
+    logic [MBITS:0] reg_m_load_size;            // Register matrix row size
+    logic [NBITS:0] reg_n_load_size;            // Register matrix column size
+    logic [MBITS:0] reg_m_store_size;           // Register matrix row size
+    logic [NBITS:0] reg_n_store_size;           // Register matrix column size
     logic [MBITS:0] reg_i_load_loc;             // Matrix load row location
     logic [NBITS:0] reg_j_load_loc;             // Matrix load column location
     logic [MBITS:0] reg_i_store_loc;            // Matrix store row location
@@ -53,8 +55,8 @@ interface mpu_bfm;
         load_en = 0;
         store_en = 0;
         mem_load_element = 'x;
-        mem_load_m_size = '0;
-        mem_load_n_size = '0;
+        mem_m_load_size = '0;
+        mem_n_load_size = '0;
         idx = '0;
         rst = 0;
         repeat (10) @(posedge clk);
@@ -80,8 +82,8 @@ interface mpu_bfm;
             LOAD: begin 
                 $display("LOAD");
                 @(posedge clk);
-                mem_load_m_size = in_m;
-                mem_load_n_size = in_n;
+                mem_m_load_size = in_m;
+                mem_n_load_size = in_n;
                 mem_load_addr = matrix_addr1;
                 idx = '0;
                 load_en = 1;
