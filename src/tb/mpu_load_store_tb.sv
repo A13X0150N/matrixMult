@@ -66,11 +66,12 @@ module mpu_load_store_tb;
         // To matrix register file
         .reg_store_addr_out     (mpu_bfm.reg_store_addr),
         .reg_element_in         (mpu_bfm.reg_store_element),
-        .reg_i_store_loc_in     (mpu_bfm.reg_i_store_loc),
-        .reg_j_store_loc_in     (mpu_bfm.reg_j_store_loc),
+        .reg_i_store_loc_out    (mpu_bfm.reg_i_store_loc),
+        .reg_j_store_loc_out    (mpu_bfm.reg_j_store_loc),
         .reg_store_complete_in  (mpu_bfm.reg_store_complete),
         .reg_m_store_size_in    (mpu_bfm.reg_m_store_size),
         .reg_n_store_size_in    (mpu_bfm.reg_n_store_size),
+        .reg_store_en_out       (mpu_bfm.reg_store_en),
 
         // To memory
         .mem_store_en_out       (mpu_bfm.mem_store_en),
@@ -85,6 +86,8 @@ module mpu_load_store_tb;
     logic [MBITS:0] in_m;
     logic [NBITS:0] in_n;
     logic [MATRIX_REG_SIZE-1:0] matrix_addr1, matrix_addr2;
+
+    initial $monitor("outdata: %f", $bitstoshortreal(mpu_bfm.mem_store_element));
 
     initial begin
         mpu_bfm.reset_mpu();
@@ -101,7 +104,11 @@ module mpu_load_store_tb;
         in_matrix[2] = 32'hc0200000;        // -2.5
         in_matrix[3] = 32'h3e000000;        // 0.125
         mpu_bfm.send_op(op, in_matrix, in_m, in_n, matrix_addr1, matrix_addr2);
-
+        op = NOP;
+        foreach(in_matrix[i]) in_matrix[i] = '0;
+        matrix_addr1 = 0;
+        op = STORE;
+        mpu_bfm.send_op(op, in_matrix, in_m, in_n, matrix_addr1, matrix_addr2);
         @(posedge mpu_bfm.clk);
         
         /*

@@ -60,9 +60,9 @@ module mpu_register_file
             reg_m_store_size_out <= size_m;
             reg_n_store_size_out <= size_n;
             reg_store_element_out <= matrix_register_array[reg_store_addr_in][reg_i_store_loc_in][reg_j_store_loc_in];
-            if ((reg_i_store_loc_in == size_m) && (reg_j_store_loc_in == size_n)) begin
-                reg_store_complete_out <= 1;
-            end
+            //if ((reg_i_store_loc_in == size_m) && (reg_j_store_loc_in == size_n)) begin
+            //    reg_store_complete_out <= 1;
+            //end
         end
     end : matrix_store
 

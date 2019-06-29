@@ -40,8 +40,7 @@ interface mpu_bfm;
     logic [NBITS:0] reg_j_load_loc;             // Matrix load column location
     logic [MBITS:0] reg_i_store_loc;            // Matrix store row location
     logic [NBITS:0] reg_j_store_loc;            // Matrix store column location
-    logic [FP-1:0] reg_element_out;             // Entire matrix output, a 2x2 32-bit matrix will have 128 signals for arithmetic!
-
+    
     // Vectorized matrix index
     logic [$clog2(M*N)-1:0] idx;                // Vectorized matrix index
 
@@ -100,7 +99,15 @@ interface mpu_bfm;
             STORE: begin 
                 $display("STORE");
                 @(posedge clk);
-
+                mem_store_addr = matrix_addr1;
+                store_en = 1;
+                @(mem_store_en);
+                do begin
+                    @(posedge clk);
+                end while (mem_store_en);
+                @(posedge clk);
+                store_en = 0;
+                $display("ENDSTORE");
             end
 
         endcase

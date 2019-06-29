@@ -80,11 +80,11 @@ module mpu_load
                 if (mem_load_ack_out) begin
                     next_state = LOAD_MATRIX;
                     reg_load_en_out = 1;
+                    reg_i_load_loc_out = row_ptr;
+                    reg_j_load_loc_out = col_ptr;                    
                     reg_load_element_out = mem_load_element_in;
 
-                    reg_i_load_loc_out = row_ptr;
-                    reg_j_load_loc_out = col_ptr;
-
+                    // Tranverse matrix pointers
                     ++col_ptr;
                     if (col_ptr == reg_n_load_size_out) begin
                         col_ptr = '0;
