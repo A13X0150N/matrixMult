@@ -89,13 +89,12 @@ interface mpu_bfm;
                 do begin
                     @(posedge clk);
                     mem_load_element = in_matrix[idx++];
-                    @(posedge clk);
                 end while (mem_load_ack);
                 @(posedge clk);
                 load_en = 0;
             end
 
-            STORE: begin 
+            STORE: begin
                 $display("STORE");
                 @(posedge clk);
                 mem_store_addr = matrix_addr1;
@@ -104,9 +103,7 @@ interface mpu_bfm;
                 do begin
                     @(posedge clk);
                 end while (mem_store_en);
-                //@(posedge clk);
                 store_en = 0;
-                $display("ENDSTORE");
             end
 
         endcase

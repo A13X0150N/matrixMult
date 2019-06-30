@@ -39,10 +39,7 @@ module mpu_load
         state <= rst ? LOAD_IDLE : next_state;
     end
 
-    always_comb begin
-
-        // TODO: add reset logic
-
+    always_comb begin : matrix_load
         unique case (state)
 
             LOAD_IDLE: begin : load_idle
@@ -105,6 +102,6 @@ module mpu_load
             end : load_matrix
         
         endcase
-    end
+    end : matrix_load
 
 endmodule : mpu_load

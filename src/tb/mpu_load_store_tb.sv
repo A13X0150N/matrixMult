@@ -110,15 +110,12 @@ module mpu_load_store_tb;
         in_matrix[6] = 32'h00000000;        // 0.0
         in_matrix[7] = 32'hb6a7c5ac;        // -0.000005
         in_matrix[8] = 32'hd0132c06;        // -9876540000    3x3 ends here
-
         mpu_bfm.send_op(op, in_matrix, in_m, in_n, matrix_addr1, matrix_addr2);
         
         op = NOP;
-        //foreach(in_matrix[i]) in_matrix[i] = '0;
         mpu_bfm.send_op(op, in_matrix, in_m, in_n, matrix_addr1, matrix_addr2);
-
+        
         op = STORE;
-        //matrix_addr1 = 0;
         mpu_bfm.send_op(op, in_matrix, in_m, in_n, matrix_addr1, matrix_addr2);
         @(posedge mpu_bfm.clk);
         
