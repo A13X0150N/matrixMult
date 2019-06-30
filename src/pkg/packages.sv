@@ -25,6 +25,7 @@ package global_defs;
     
     // Testbench
     parameter CLOCK_PERIOD = 10;
+    parameter CYCLES = 100;
 
     // Maximum matrix dimensions (m x k)(k x n)
     parameter M = 2;
@@ -76,6 +77,16 @@ package mpu_pkg;
         STORE_IDLE   = 1'b0,
         STORE_MATRIX = 1'b1
     } store_state_t;
+
+    typedef enum logic { //remove
+        REG_LOAD_IDLE   = 1'b0,
+        REG_LOAD_MATRIX = 1'b1
+    } reg_load_state_t;
+
+    typedef enum logic { //remove
+        REG_STORE_IDLE   = 1'b0,
+        REG_STORE_MATRIX = 1'b1
+    } reg_store_state_t;  
 
 endpackage : mpu_pkg
 

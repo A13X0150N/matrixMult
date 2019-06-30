@@ -40,6 +40,9 @@ module mpu_load
     end
 
     always_comb begin
+
+        // TODO: add reset logic
+
         unique case (state)
 
             LOAD_IDLE: begin : load_idle

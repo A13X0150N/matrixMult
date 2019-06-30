@@ -13,6 +13,6 @@ module top;
     //fpu_multiplier_tb mult_test();
     //fpu_adder_tb add_test();
 
-    initial #(CLOCK_PERIOD*1000) $stop; 
+    initial #(CLOCK_PERIOD*CYCLES) $stop; 
     final $display("\n\tEnd of test\n\n");
 endmodule : top

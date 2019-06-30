@@ -12,7 +12,9 @@ interface mpu_bfm;
     logic store_en;                             // Store enable 
     logic reg_load_en;                          // Register load enable
     logic reg_store_en;                         // Register store enable
-    logic reg_store_complete;                   // MPU is finished outputting matrix to memory
+    logic mem_load_error;                       // Error signal     
+    logic mem_load_ack;                         // Acknowledge signal
+    logic mem_store_en;                         // Memory store enable signal
 
     // Input/Output matrix from file or memory
     logic [FP-1:0] mem_load_element;            // [32|64]-bit float, matrix element
@@ -20,9 +22,6 @@ interface mpu_bfm;
     logic [NBITS:0] mem_n_load_size;            // n-dimension of input matrix
     logic [MATRIX_REG_SIZE-1:0] mem_load_addr;  // Matrix address to load matrix in
     logic [MATRIX_REG_SIZE-1:0] mem_store_addr; // Matrix address to load matrix in
-    logic mem_load_error;                       // Error signal     
-    logic mem_load_ack;                         // Acknowledge signal
-    logic mem_store_en;                         // Memory store enable signal
     logic [FP-1:0] mem_store_element;           // Element to send out to memory
     logic [MBITS:0] mem_m_store_size;           // Row size of output matrix
     logic [NBITS:0] mem_n_store_size;           // Column size of output matrix
@@ -101,11 +100,11 @@ interface mpu_bfm;
                 @(posedge clk);
                 mem_store_addr = matrix_addr1;
                 store_en = 1;
-                @(mem_store_en);
+                @(mem_store_en);    
                 do begin
                     @(posedge clk);
                 end while (mem_store_en);
-                @(posedge clk);
+                //@(posedge clk);
                 store_en = 0;
                 $display("ENDSTORE");
             end
