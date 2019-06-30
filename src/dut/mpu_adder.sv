@@ -1,4 +1,12 @@
 // mpu_adder.sv
+// ----------------------------------------------------------------------------
+//   Author: Alex Olson
+//     Date: June 2019
+//
+// Desciption:
+// ----------------------------------------------------------------------------
+// Method to add two matrices from registers together and place the result into
+// a register.
 
 import global_defs::*;
 

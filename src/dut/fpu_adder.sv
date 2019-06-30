@@ -1,5 +1,14 @@
 // fpu_adder.sv
-// modified from original source:  https://github.com/dawsonjon/fpu
+// ----------------------------------------------------------------------------
+//   Author: Jonathan P Dawson 2013
+// Modified: Alex Olson
+//     Date: June 2019
+//   Source: https://github.com/dawsonjon/fpu
+//
+// Description:
+// ----------------------------------------------------------------------------
+// Synthesizable method of IEEE 754 single-precision addition with automatic
+// normalization of numbers.
 
 import global_defs::*;
 

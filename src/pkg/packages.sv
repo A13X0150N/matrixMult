@@ -1,4 +1,7 @@
 // packages.sv
+// ----------------------------------------------------------------------------
+//   Author: Alex Olson
+//     Date: June 2019
 //
 // Desciption:
 // ----------------------------------------------------------------------------
@@ -14,9 +17,10 @@ package global_defs;
     typedef enum logic {FALSE, TRUE} bool_t;
 
     // Floating point sizes
-    parameter SP = 32;  // Single precision
-    parameter DP = 64;  // Double precions
-    parameter FP = SP;  // Selection for design
+    parameter SP = 32;          // Single precision
+    parameter DP = 64;          // Double precions [untested]
+    parameter FP = SP;          // Selection for design
+    parameter FPBITS = FP-1;    // Floating point bit number
 
     // Multiplication methods, only make one selection (For experimental directory)
     parameter MULT_SIMULATION = 0;
@@ -28,17 +32,21 @@ package global_defs;
     parameter CYCLES = 100;
 
     // Maximum matrix dimensions (m x k)(k x n)
-    parameter M = 2;
+    parameter M = 3;
     parameter K = 3;
-    parameter N = 2;
-    parameter MBITS = $clog2(M);
-    parameter KBITS = $clog2(K);
-    parameter NBITS = $clog2(N);
+    parameter N = 3;
+    parameter MBITS = $clog2(M)-1;
+    parameter KBITS = $clog2(K)-1;
+    parameter NBITS = $clog2(N)-1;
     parameter NUM_ELEMENTS = M*N;
 
     // Size of matrix register file
     parameter MATRIX_REGISTERS = 16;
-    parameter MATRIX_REG_SIZE = $clog2(MATRIX_REGISTERS);
+    parameter MATRIX_REG_BITS = $clog2(MATRIX_REGISTERS)-1;
+
+//    task cycles;
+  //      (($time+(CLOCK_PERIOD/2))/CLOCK_PERIOD)
+    //endtask : cycles
 
 endpackage : global_defs
 

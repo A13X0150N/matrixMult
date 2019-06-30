@@ -1,4 +1,12 @@
 // mpu_bfm.sv
+// ----------------------------------------------------------------------------
+//   Author: Alex Olson
+//     Date: June 2019
+//
+// Desciption:
+// ----------------------------------------------------------------------------
+// Bus Functional Model interface for the matrix processor. Can currently
+// perform nop, load, and store transactions on the design.
 
 import global_defs::*;
 
@@ -6,31 +14,31 @@ interface mpu_bfm;
     import mpu_pkg::*;
 
     // Control signals
-    logic clk;                                  // Clock signal
-    logic rst;                                  // Synchronous reset, active high
-    logic load_en;                              // Load enable
-    logic store_en;                             // Store enable 
-    logic reg_load_en;                          // Register load enable
-    logic reg_store_en;                         // Register store enable
-    logic mem_load_error;                       // Error signal     
-    logic mem_load_ack;                         // Acknowledge signal
-    logic mem_store_en;                         // Memory store enable signal
+    logic clk;              // Clock signal
+    logic rst;              // Synchronous reset, active high
+    logic load_en;          // Load enable
+    logic store_en;         // Store enable 
+    logic reg_load_en;      // Register load enable
+    logic reg_store_en;     // Register store enable
+    logic mem_load_error;   // Error signal     
+    logic mem_load_ack;     // Acknowledge signal
+    logic mem_store_en;     // Memory store enable signal
 
     // Input/Output matrix from file or memory
-    logic [FP-1:0] mem_load_element;            // [32|64]-bit float, matrix element
+    logic [FPBITS:0] mem_load_element;          // [32|64]-bit float, matrix element
     logic [MBITS:0] mem_m_load_size;            // m-dimension of input matrix
     logic [NBITS:0] mem_n_load_size;            // n-dimension of input matrix
-    logic [MATRIX_REG_SIZE-1:0] mem_load_addr;  // Matrix address to load matrix in
-    logic [MATRIX_REG_SIZE-1:0] mem_store_addr; // Matrix address to load matrix in
-    logic [FP-1:0] mem_store_element;           // Element to send out to memory
+    logic [MATRIX_REG_BITS:0] mem_load_addr;    // Matrix address to load matrix in
+    logic [MATRIX_REG_BITS:0] mem_store_addr;   // Matrix address to load matrix in
+    logic [FPBITS:0] mem_store_element;         // Element to send out to memory
     logic [MBITS:0] mem_m_store_size;           // Row size of output matrix
     logic [NBITS:0] mem_n_store_size;           // Column size of output matrix
 
     // Output to register file
-    logic [MATRIX_REG_SIZE-1:0] reg_load_addr;  // Matrix register address to load matrix in
-    logic [MATRIX_REG_SIZE-1:0] reg_store_addr; // Matrix register address to write matix out
-    logic [FP-1:0] reg_load_element;            // Matrix load data element
-    logic [FP-1:0] reg_store_element;           // Matrix store data element
+    logic [MATRIX_REG_BITS:0] reg_load_addr;    // Matrix register address to load matrix in
+    logic [MATRIX_REG_BITS:0] reg_store_addr;   // Matrix register address to write matix out
+    logic [FPBITS:0] reg_load_element;          // Matrix load data element
+    logic [FPBITS:0] reg_store_element;         // Matrix store data element
     logic [MBITS:0] reg_m_load_size;            // Register matrix row size
     logic [NBITS:0] reg_n_load_size;            // Register matrix column size
     logic [MBITS:0] reg_m_store_size;           // Register matrix row size
@@ -40,8 +48,8 @@ interface mpu_bfm;
     logic [MBITS:0] reg_i_store_loc;            // Matrix store row location
     logic [NBITS:0] reg_j_store_loc;            // Matrix store column location
     
-    // Vectorized matrix index
-    logic [$clog2(M*N)-1:0] idx;                // Vectorized matrix index
+    // Interface metasignal
+    logic [$clog2(M*N)-1:0] idx;    // Vectorized matrix index
 
     initial begin : clock_generator
         clk = 0;
@@ -69,7 +77,7 @@ interface mpu_bfm;
                     input logic [FP-1:0] in_matrix [NUM_ELEMENTS], 
                     input logic [MBITS:0] in_m, 
                     input logic [NBITS:0] in_n,
-                    input logic [MATRIX_REG_SIZE-1:0] matrix_addr1, matrix_addr2
+                    input logic [MATRIX_REG_BITS:0] matrix_addr1, matrix_addr2
                 );
         unique case(op)
             NOP: begin

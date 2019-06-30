@@ -1,4 +1,7 @@
 // ao_multiply.sv
+// ----------------------------------------------------------------------------
+//   Author: Alex Olson
+//     Date: June 2019
 //
 // Desciption:
 // ----------------------------------------------------------------------------
@@ -12,10 +15,10 @@ module ao_multiply
 	localparam OUTWIDTH = INWIDTH * 2			// The output has double the width of the input
 )
 ( 
-	input  logic 				clk, rst_n, start,
-	input  logic [INWIDTH-1:0] 	A, B,
+	input  logic clk, rst_n, start,
+	input  logic [INWIDTH-1:0] A, B,
 	output logic [OUTWIDTH-1:0] Y,
-	output logic 				ready
+	output logic ready
 );
 
 	logic [OUTWIDTH:0] 			product;

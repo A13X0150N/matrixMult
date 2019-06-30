@@ -1,4 +1,12 @@
 // fpu_adder_tb.sv
+// ----------------------------------------------------------------------------
+//   Author: Alex Olson
+//     Date: June 2019
+//
+// Desciption:
+// ----------------------------------------------------------------------------
+// Testbench to check simple floating-point additions for 32-bits. Eventually
+// migrate to UVM.
 
 import global_defs::*;
 

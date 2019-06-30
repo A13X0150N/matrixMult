@@ -1,4 +1,12 @@
 // mpu_load_store_tb.sv
+// ----------------------------------------------------------------------------
+//   Author: Alex Olson
+//     Date: June 2019
+//
+// Desciption:
+// ----------------------------------------------------------------------------
+// Testbench to check the load and store ability of the design. Eventually
+// migrate to UVM.
 
 import global_defs::*;
 
@@ -32,6 +40,7 @@ module mpu_load_store_tb;
         .reg_store_element_out  (mpu_bfm.reg_store_element)
     );
 
+    // Move matrix from external memory into internal registers
     mpu_load load_dut (
         // Control signals
         .clk                    (mpu_bfm.clk),
@@ -56,6 +65,7 @@ module mpu_load_store_tb;
         .reg_n_load_size_out    (mpu_bfm.reg_n_load_size)
     );
 
+    // Move matrix from internal register out to memory
     mpu_store store_dut (
         // Control signals
         .clk                    (mpu_bfm.clk),
@@ -81,12 +91,12 @@ module mpu_load_store_tb;
 
     // Test variables
     mpu_operation_t op;
-    logic [FP-1:0] in_matrix [NUM_ELEMENTS];
+    logic [FPBITS:0] in_matrix [NUM_ELEMENTS];
     logic [MBITS:0] in_m;
     logic [NBITS:0] in_n;
-    logic [MATRIX_REG_SIZE-1:0] matrix_addr1, matrix_addr2;
+    logic [MATRIX_REG_BITS:0] matrix_addr1, matrix_addr2;
 
-    initial $monitor("\n", $time, " timeunits\nmem_store_en: %b \noutdata: %f    M: %d    N: %d \n\n", 
+    initial $monitor("\n", (($time+(CLOCK_PERIOD/2))/CLOCK_PERIOD), " clock cycles\nmem_store_en: %b \noutdata: %f    M: %d    N: %d \n\n", 
                     mpu_bfm.mem_store_en, $bitstoshortreal(mpu_bfm.mem_store_element), mpu_bfm.mem_m_store_size,  mpu_bfm.mem_n_store_size);
 
     initial begin
@@ -117,17 +127,9 @@ module mpu_load_store_tb;
         
         op = STORE;
         mpu_bfm.send_op(op, in_matrix, in_m, in_n, matrix_addr1, matrix_addr2);
-        @(posedge mpu_bfm.clk);
-        
-        /*
-        $display("\n\tTEST MATRIX LOAD\n\t %f\t%f \n\t %f\t%f \n", 
-                    $bitstoshortreal(mpu_bfm.reg_element_out[0][0]),
-                    $bitstoshortreal(mpu_bfm.reg_element_out[0][1]),
-                    $bitstoshortreal(mpu_bfm.reg_element_out[1][0]),
-                    $bitstoshortreal(mpu_bfm.reg_element_out[1][1]));
-        */
 
         //Register dumep
+        @(posedge mpu_bfm.clk);        
         if (NUM_ELEMENTS == 4) begin
             // 2x2 test
             $display("\n\t2x2 MATRIX REGISTER[0] DUMP\n\t %f\t%f \n\t %f\t%f \n", 

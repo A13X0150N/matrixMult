@@ -1,4 +1,12 @@
 // fpu_bfm.sv
+// ----------------------------------------------------------------------------
+//   Author: Alex Olson
+//     Date: June 2019
+//
+// Desciption:
+// ----------------------------------------------------------------------------
+// Contains the signals and transactions for IEEE 754 single-precision addition
+// and multiplication. Operations are sent using the send_op task.
 
 import global_defs::*;
 
@@ -50,7 +58,7 @@ interface fpu_bfm;
                 output_ack = 1;
                 @(posedge clk);
                 output_ack = 0;
-                $display("FPU ADD result:\t %f + %f = %f\n", $bitstoshortreal(in1), $bitstoshortreal(in2), $bitstoshortreal(result));
+                $display((($time+(CLOCK_PERIOD/2))/CLOCK_PERIOD), " clock cycles\nFPU ADD result:\t %f + %f = %f\n", $bitstoshortreal(in1), $bitstoshortreal(in2), $bitstoshortreal(result));
             end
 
             MULT: begin
@@ -69,7 +77,7 @@ interface fpu_bfm;
                 output_ack = 1;
                 @(posedge clk);
                 output_ack = 0;
-                $display("FPU MULTIPLY result:\t %f * %f = %f\n", $bitstoshortreal(in1), $bitstoshortreal(in2), $bitstoshortreal(result));
+                $display((($time+(CLOCK_PERIOD/2))/CLOCK_PERIOD), " clock cycles\nFPU MULTIPLY result:\t %f * %f = %f\n", $bitstoshortreal(in1), $bitstoshortreal(in2), $bitstoshortreal(result));
             end
 
         endcase
