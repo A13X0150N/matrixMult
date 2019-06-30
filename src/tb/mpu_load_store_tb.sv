@@ -103,8 +103,8 @@ module mpu_load_store_tb;
         mpu_bfm.reset_mpu();
         
         op = NOP;
-        in_m = M;
-        in_n = N;
+        in_m = M_MEM;
+        in_n = N_MEM;
         matrix_addr1 = 0;
         matrix_addr2 = 1;
         foreach(in_matrix[i]) in_matrix[i] = '0;

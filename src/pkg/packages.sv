@@ -31,14 +31,16 @@ package global_defs;
     parameter CLOCK_PERIOD = 10;
     parameter CYCLES = 100;
 
-    // Maximum matrix dimensions (m x k)(k x n)
-    parameter M = 3;
-    parameter K = 3;
-    parameter N = 3;
-    parameter MBITS = $clog2(M)-1;
-    parameter KBITS = $clog2(K)-1;
-    parameter NBITS = $clog2(N)-1;
-    parameter NUM_ELEMENTS = M*N;
+    // Maximum working matrix dimensions (m x k)(k x n)
+    parameter M = 5;                        // Maximum register row size
+    parameter K = 3;                        // Maximum register intermediate size [untested]
+    parameter N = 5;                        // Maximum register  column size
+    parameter MBITS = $clog2(M)-1;          // Register row bits
+    parameter KBITS = $clog2(K)-1;          // Register intermediate bits
+    parameter NBITS = $clog2(N)-1;          // Register column bits
+    parameter M_MEM = 3;                    // Testbench input matrix rows     MUST BE LESS THAN M
+    parameter N_MEM = 3;                    // Testbench input matrix columns  MUST BE LESS THAN N
+    parameter NUM_ELEMENTS = M_MEM * N_MEM; // Number of input elements for testbench
 
     // Size of matrix register file
     parameter MATRIX_REGISTERS = 16;
