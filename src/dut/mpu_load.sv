@@ -4,101 +4,104 @@
 import global_defs::*;
 
 module mpu_load 
-(	
-	// Control signals
-	input clk,    		// Clock
-	input rst,    		// Synchronous reset active high
-	input en,			// Signal input data
+(   
+    // Control signals
+    input clk,              // Clock
+    input rst,              // Synchronous reset active high
+    input load_en_in,       // Signal input data
 
-	// Input matrix from file or memory
-	input logic [FP-1:0] element,						// 32-bit float, matrix element
-	input logic [MBITS:0] matrix_m_size,				// m-dimension of input matrix
-	input logic [NBITS:0] matrix_n_size,				// n-dimension of input matrix
-	input logic [MATRIX_REG_SIZE-1:0] load_addr,		// Matrix address	
-	output logic error=0,								// Error detection
-	output logic ack=0,									// Receive data handshake signal
+    // Input matrix from file or memory
+    input logic [FP-1:0] mem_load_element_in,           // [32|64]-bit float, matrix element
+    input logic [MBITS:0] mem_m_load_size_in,           // m-dimension of input matrix (rows)
+    input logic [NBITS:0] mem_n_load_size_in,           // n-dimension of input matrix (columns)
+    input logic [MATRIX_REG_SIZE-1:0] mem_load_addr_in, // Matrix address   
+    output logic mem_load_error_out=0,                  // Error detection
+    output logic mem_load_ack_out=0,                    // Receive data handshake signal
 
-	// Output to register file
-	output logic write_en,								// Matrix write request
-	output logic [MATRIX_REG_SIZE-1:0] reg_load_addr,	// Matrix address load location	
-	output logic [FP-1:0] element_out,					// Matrix data
-	output logic [MBITS:0] m,							// Matrix row location
-	output logic [NBITS:0] n							// Matrix column location
+    // Output to register file
+    output logic reg_load_en_out,                           // Matrix load request
+    output logic [MATRIX_REG_SIZE-1:0] reg_load_addr_out,   // Matrix address load location 
+    output logic [FP-1:0] reg_load_element_out,             // Matrix data
+    output logic [MBITS:0] reg_i_load_loc_out,              // Matrix row location
+    output logic [NBITS:0] reg_j_load_loc_out,              // Matrix column location
+    output logic [MBITS:0] reg_m_load_size_out,             // Matrix row size
+    output logic [NBITS:0] reg_n_load_size_out              // Matrix column size
 );
 
-	import mpu_pkg::*;
+    import mpu_pkg::*;
 
-	logic [MBITS:0] m_size='0, row_ptr='x;
-	logic [NBITS:0] n_size='0, col_ptr='x;
+    logic [MBITS:0] row_ptr='x;
+    logic [NBITS:0] col_ptr='x;
 
-	load_state_t state=LOAD_IDLE, next_state=LOAD_IDLE;
+    load_state_t state=LOAD_IDLE, next_state=LOAD_IDLE;
 
-	always_ff @(posedge clk) begin
-		state <= rst ? LOAD_IDLE : next_state;
-	end
+    always_ff @(posedge clk) begin
+        state <= rst ? LOAD_IDLE : next_state;
+    end
 
-	always_comb begin
-		unique case (state)
-			LOAD_IDLE: begin
-				next_state = LOAD_IDLE;
-				ack = 0;
-				reg_load_addr = 'x;
-				write_en = 0;
-				m_size = '0;
-				n_size = '0;
-				m = 0;
-				n = 0;
-				element_out = 'x;
+    always_comb begin : matrix_load
+        unique case (state)
 
-				// Input ready
-				if (en) begin
+            LOAD_IDLE: begin : load_idle
+                next_state = LOAD_IDLE;
+                mem_load_ack_out = 0;
+                reg_m_load_size_out = '0;
+                reg_n_load_size_out = '0;
+                reg_load_addr_out = 'x;
+                reg_load_en_out = 0;
+                reg_i_load_loc_out = 0;
+                reg_j_load_loc_out = 0;
+                reg_load_element_out = 'x;
+                mem_load_error_out = rst ? 0 : mem_load_error_out;
 
-					// Check for dimension errors
-					if (matrix_m_size > M || matrix_n_size > N || !matrix_m_size || !matrix_n_size) begin
-						error = 1;
-					end
+                // Input ready
+                if (load_en_in) begin
 
-					// Start loading in the matrix on the next cycle
-					else begin
-						ack = 1;
-						error = 0;
-						row_ptr = '0;
-						col_ptr = '0;
-						m_size = matrix_m_size;
-						n_size = matrix_n_size;
-						reg_load_addr = load_addr;
-						next_state = LOAD_MATRIX;
-					end
-				end
-			end
+                    // Check for dimension errors
+                    if (mem_m_load_size_in > M || mem_n_load_size_in > N || !mem_m_load_size_in || !mem_n_load_size_in) begin
+                        mem_load_error_out = 1;
+                    end
 
-			LOAD_MATRIX: begin
-				if (ack) begin
-					next_state = LOAD_MATRIX;
-					write_en = 1;
-					element_out = element;
+                    // Start loading in the matrix on the next cycle
+                    else begin
+                        row_ptr = '0;
+                        col_ptr = '0;                        
+                        mem_load_ack_out = 1;
+                        mem_load_error_out = 0;
+                        reg_m_load_size_out = mem_m_load_size_in;
+                        reg_n_load_size_out = mem_n_load_size_in;
+                        reg_load_addr_out = mem_load_addr_in;
+                        next_state = LOAD_MATRIX;
+                    end
+                end
+            end : load_idle
 
-					m = row_ptr;
-					n = col_ptr;
+            LOAD_MATRIX: begin : load_matrix
+                if (mem_load_ack_out) begin
+                    next_state = LOAD_MATRIX;
+                    reg_load_en_out = 1;
+                    reg_i_load_loc_out = row_ptr;
+                    reg_j_load_loc_out = col_ptr;                    
+                    reg_load_element_out = mem_load_element_in;
 
-					++col_ptr;
-					if (col_ptr == n_size) begin
-						col_ptr = '0;
-						++row_ptr;
-					end
+                    // Tranverse matrix pointers
+                    ++col_ptr;
+                    if (col_ptr == reg_n_load_size_out) begin
+                        col_ptr = '0;
+                        ++row_ptr;
+                    end
 
-					// If finished loading data
-					if ((row_ptr == m_size) && !col_ptr) begin
-						ack = 0;
-					end
-				end
-				else begin
-					next_state = LOAD_IDLE;
-				end
-			end
-
-	 	endcase
-	end
-
+                    // If finished loading data
+                    if ((row_ptr == reg_m_load_size_out) && !col_ptr) begin
+                        mem_load_ack_out = 0;
+                    end
+                end
+                else begin
+                    next_state = LOAD_IDLE;
+                end
+            end : load_matrix
+        
+        endcase
+    end : matrix_load
 
 endmodule : mpu_load
