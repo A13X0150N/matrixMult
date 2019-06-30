@@ -46,10 +46,6 @@ package global_defs;
     parameter MATRIX_REGISTERS = 16;
     parameter MATRIX_REG_BITS = $clog2(MATRIX_REGISTERS)-1;
 
-//    task cycles;
-  //      (($time+(CLOCK_PERIOD/2))/CLOCK_PERIOD)
-    //endtask : cycles
-
 endpackage : global_defs
 
 

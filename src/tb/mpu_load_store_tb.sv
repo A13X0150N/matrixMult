@@ -96,7 +96,7 @@ module mpu_load_store_tb;
     logic [NBITS:0] in_n;
     logic [MATRIX_REG_BITS:0] matrix_addr1, matrix_addr2;
 
-    initial $monitor("\n", (($time+(CLOCK_PERIOD/2))/CLOCK_PERIOD), " clock cycles\nmem_store_en: %b \noutdata: %f    M: %d    N: %d \n\n", 
+    initial $monitor("\n", ($time/CLOCK_PERIOD), " clock cycles\nmem_store_en: %b \noutdata: %f    M: %d    N: %d \n\n", 
                     mpu_bfm.mem_store_en, $bitstoshortreal(mpu_bfm.mem_store_element), mpu_bfm.mem_m_store_size,  mpu_bfm.mem_n_store_size);
 
     initial begin
