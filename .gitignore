@@ -1,2 +1,10 @@
 work/
 transcript
+edsenv
+modelsim.ini
+tbxbindings.h
+*.log
+veloce.med/
+veloce.wave/
+veloce.map
+velrunopts.ini

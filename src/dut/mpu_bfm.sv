@@ -10,14 +10,12 @@
 
 import global_defs::*;
 
-interface mpu_bfm;
+interface mpu_bfm(input clk, rst);
+// pragma attribute mpu_bfm partition_interface_xif
     import mpu_pkg::*;
 
-    // Control signals
-    logic clk;              // Clock signal
-    logic rst;              // Synchronous reset, active high
-    logic load_en;          // Load enable
-    logic store_en;         // Store enable 
+    logic load_en;        // Load enable
+    logic store_en;       // Store enable 
     logic reg_load_en;      // Register load enable
     logic reg_store_en;     // Register store enable
     logic mem_load_error;   // Error signal     
@@ -25,9 +23,9 @@ interface mpu_bfm;
     logic mem_store_en;     // Memory store enable signal
 
     // Input/Output matrix from file or memory
-    logic [FPBITS:0] mem_load_element;          // [32|64]-bit float, matrix element
-    logic [MBITS:0] mem_m_load_size;            // m-dimension of input matrix
-    logic [NBITS:0] mem_n_load_size;            // n-dimension of input matrix
+    logic [FPBITS:0] mem_load_element;       // [32|64]-bit float, matrix element
+    logic [MBITS:0] mem_m_load_size;         // m-dimension of input matrix
+    logic [NBITS:0] mem_n_load_size;         // n-dimension of input matrix
     logic [MATRIX_REG_BITS:0] mem_load_addr;    // Matrix address to load matrix in
     logic [MATRIX_REG_BITS:0] mem_store_addr;   // Matrix address to load matrix in
     logic [FPBITS:0] mem_store_element;         // Element to send out to memory
@@ -49,37 +47,22 @@ interface mpu_bfm;
     logic [NBITS:0] reg_j_store_loc;            // Matrix store column location
     
     // Interface metasignal
-    logic [$clog2(M*N)-1:0] idx;    // Vectorized matrix index
+    logic [$clog2(M*N)-1:0] idx='0;    // Vectorized matrix index
 
-    initial begin : clock_generator
-        clk = 0;
-        forever #(CLOCK_PERIOD/2) clk = ~clk;
-    end : clock_generator
-
-    // Reset the MPU
-    task reset_mpu;
+    // Wait for reset task.
+    task wait_for_reset(); // pragma tbx xtf
+        @(negedge rst);
         load_en = 0;
         store_en = 0;
-        mem_load_element = 'x;
+        mem_load_element = '0;
         mem_m_load_size = '0;
         mem_n_load_size = '0;
-        idx = '0;
-        rst = 0;
-        repeat (10) @(posedge clk);
-        rst = 1;
-        repeat (10) @(posedge clk);
-        rst = 0;
-        repeat (10) @(posedge clk);
-    endtask : reset_mpu
+    endtask
 
     // Send an operation into an MPU
-    task send_op(   input mpu_operation_t op,
-                    input logic [FP-1:0] in_matrix [NUM_ELEMENTS], 
-                    input logic [MBITS:0] in_m, 
-                    input logic [NBITS:0] in_n,
-                    input logic [MATRIX_REG_BITS:0] matrix_addr1, matrix_addr2
-                );
-        unique case(op)
+    task send_op(input mpu_data_t req, output mpu_data_t rsp); // pragma tbx xtf
+        @(posedge clk); // For a task to be synthesizable for veloce, it must be a clocked task
+        case(req.op)
             NOP: begin
                 $display("NOP");
                 @(posedge clk);
@@ -87,29 +70,33 @@ interface mpu_bfm;
 
             LOAD: begin 
                 $display("LOAD");
-                @(posedge clk);
-                mem_m_load_size = in_m;
-                mem_n_load_size = in_n;
-                mem_load_addr = matrix_addr1;
                 idx = '0;
+                mem_m_load_size = req.m_in;
+                mem_n_load_size = req.n_in;
+                mem_load_addr = req.matrix_addr;
+                mem_load_element = req.matrix_in[idx++];
                 load_en = 1;
-                @(mem_load_ack);
-                do begin
+                while (!mem_load_ack) begin
                     @(posedge clk);
-                    mem_load_element = in_matrix[idx++];
+                end;
+                do begin
+                    mem_load_element = req.matrix_in[idx++];
+                    @(posedge clk);
                 end while (mem_load_ack);
-                @(posedge clk);
                 load_en = 0;
             end
 
             STORE: begin
                 $display("STORE");
-                @(posedge clk);
-                mem_store_addr = matrix_addr1;
+                mem_store_addr = req.matrix_addr;
+                idx = '0;
                 store_en = 1;
-                @(mem_store_en);    
+                while (!mem_store_en) begin
+                    @(posedge clk);
+                end
                 do begin
                     @(posedge clk);
+                    rsp.matrix_out[idx++] = mem_store_element;
                 end while (mem_store_en);
                 store_en = 0;
             end

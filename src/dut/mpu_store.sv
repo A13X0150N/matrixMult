@@ -30,89 +30,129 @@ module mpu_store
     // To memory
     input logic [MATRIX_REG_BITS:0] mem_store_addr_in,      // Matrix address store location
     output logic mem_store_en_out,                          // Signal for store enable
-    output logic [FPBITS:0] mem_store_element_out,          // Matrix element output
     output logic [MBITS:0] mem_m_store_size_out,            // M total rows
-    output logic [NBITS:0] mem_n_store_size_out             // N total columns
+    output logic [NBITS:0] mem_n_store_size_out,             // N total columns
+    output logic [FPBITS:0] mem_store_element_out          // Matrix element output
 );
 
     import mpu_pkg::*;
 
-    logic [MBITS:0] row_ptr='x;
-    logic [NBITS:0] col_ptr='x;
-    logic store_finished=0;
+    logic [MBITS:0] row_ptr;
+    logic [NBITS:0] col_ptr;
+    logic store_finished;
 
-    store_state_t state=STORE_IDLE, next_state=STORE_IDLE;
+    store_state_t state=STORE_IDLE, next_state;
 
     // State machine driver
-    always_ff @(posedge clk) begin
+    always_ff @(posedge clk) begin : state_machine_driver
         state <= rst ? STORE_IDLE : next_state;
-        
-        // Logic to clear row and column index pointers 
-        if (store_finished || rst) begin
+    end : state_machine_driver
+
+    // Register (i,j) incremental pointer driver
+    always_ff @(posedge clk) begin
+        if (rst) begin
             row_ptr <= '0;
             col_ptr <= '0;
         end
-        
-        // Row and column pointers must be incremented here for clock synchronization
-        if (!store_finished && store_en_in) begin
-            col_ptr <= col_ptr + 1;
-            if (col_ptr == mem_n_store_size_out-1) begin
+        else begin
+            // Logic to clear row and column index pointers 
+            if (store_finished) begin    
+                row_ptr <= '0;
                 col_ptr <= '0;
-                row_ptr <= row_ptr + 1;
-            end
+            end  
+            // Row and column pointers must be incremented here for clock synchronization
+            else if (!store_finished && store_en_in) begin
+                col_ptr <= col_ptr + 1;
+                if (col_ptr == mem_n_store_size_out-1) begin
+                    col_ptr <= '0;
+                    row_ptr <= row_ptr + 1;
+                end
+            end          
         end
     end
 
     // Matrix register output
     always_comb begin : matrix_store
-        unique case (state)
-            
-            STORE_IDLE: begin : store_idle
-                next_state = STORE_IDLE;
-                store_finished = 0;
-                reg_i_store_loc_out = '0;
-                reg_j_store_loc_out = '0;
-                reg_store_en_out = 0;
-                mem_store_en_out = 0;
-                reg_store_addr_out = 'x;
-
-                if (store_en_in) begin
-                    next_state = STORE_MATRIX;
-                    store_finished = 0;
-                    reg_i_store_loc_out = '0;
-                    reg_j_store_loc_out = '0;
-                    reg_store_en_out = 1;
-                    mem_store_en_out = 1;
-                    reg_store_addr_out = mem_store_addr_in;
-                end
-            end : store_idle
-
-            STORE_MATRIX: begin : store_matrix
-                // Next state logic
-                if (!store_finished) begin
-                    next_state = STORE_MATRIX;
-                    reg_store_en_out = 1;
-                    mem_store_en_out = 1;
-                   
-                    // If finished storing data
-                    if ((row_ptr == reg_m_store_size_in) && !col_ptr) begin
-                        store_finished = 1;
-                        mem_store_en_out = 0;
-                        reg_store_en_out = 0;
+        if (rst) begin
+            next_state = STORE_IDLE;
+            reg_store_en_out = 0;
+            reg_i_store_loc_out = '0;
+            reg_j_store_loc_out = '0;
+            reg_store_addr_out = '0;
+            mem_store_en_out = 0;
+            mem_m_store_size_out = '0;
+            mem_n_store_size_out = '0;
+            mem_store_element_out = '0;
+            store_finished = 0;            
+        end
+        else begin
+            unique case (state)
+                
+                STORE_IDLE: begin : store_idle
+                    if (store_en_in && !store_finished) begin
+                        next_state = STORE_MATRIX;
+                        reg_store_en_out = 1;
+                        reg_i_store_loc_out = row_ptr;
+                        reg_j_store_loc_out = col_ptr;
+                        reg_store_addr_out = mem_store_addr_in;
+                        mem_store_en_out = 1;
+                        mem_m_store_size_out = reg_m_store_size_in;
+                        mem_n_store_size_out = reg_n_store_size_in;
+                        mem_store_element_out = reg_store_element_in;
+                        store_finished = 0;
                     end
+                    else begin
+                        next_state = STORE_IDLE;
+                        reg_store_en_out = 0;
+                        reg_i_store_loc_out = '0;
+                        reg_j_store_loc_out = '0;
+                        reg_store_addr_out = '0;
+                        mem_store_en_out = 0;
+                        mem_m_store_size_out = '0;
+                        mem_n_store_size_out = '0;
+                        mem_store_element_out = '0;
+                        store_finished = 0;
+                    end
+                end : store_idle
 
-                    reg_i_store_loc_out = row_ptr;
-                    reg_j_store_loc_out = col_ptr;
-                    mem_store_element_out = reg_store_element_in;
-                    mem_m_store_size_out = reg_m_store_size_in;
-                    mem_n_store_size_out = reg_n_store_size_in;
-                end
-                else begin
-                    next_state = STORE_IDLE;
-                end
-            end : store_matrix
+                STORE_MATRIX: begin : store_matrix
+                    // Next state logic
+                    if (!store_finished) begin
+                        next_state = STORE_MATRIX;
+                        reg_store_en_out = 1;
+                        reg_i_store_loc_out = row_ptr;
+                        reg_j_store_loc_out = col_ptr;
+                        reg_store_addr_out = mem_store_addr_in;
+                        mem_store_en_out = 1;
+                        mem_m_store_size_out = reg_m_store_size_in;
+                        mem_n_store_size_out = reg_n_store_size_in;
+                        mem_store_element_out = reg_store_element_in;
+                       
+                        // If finished storing data
+                        if ((row_ptr == reg_m_store_size_in-1) && (col_ptr == reg_n_store_size_in-1)) begin
+                            store_finished = 1;
+                        end
+                        else begin
+                            store_finished = 0;
+                        end
 
-        endcase
+                    end
+                    else begin
+                        next_state = STORE_IDLE;
+                        reg_store_en_out = 0;
+                        reg_i_store_loc_out = reg_m_store_size_in-1;
+                        reg_j_store_loc_out = reg_n_store_size_in-1;
+                        reg_store_addr_out = mem_store_addr_in;
+                        mem_store_en_out = 0;
+                        mem_m_store_size_out = reg_m_store_size_in;
+                        mem_n_store_size_out = reg_n_store_size_in;
+                        mem_store_element_out = reg_store_element_in;
+                        store_finished = 1;
+                    end
+                end : store_matrix
+
+            endcase
+        end
     end : matrix_store
 
 endmodule : mpu_store

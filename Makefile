@@ -1,20 +1,61 @@
-all:
-	vlib work
-	vlog src/pkg/*.sv
-	vlog src/dut/*.sv
-	vlog src/tb/*.sv
-	vlog src/*.sv
-	vsim -c top -do "run -all; quit"
+# Specify the mode- could be either puresim or veloce
+# Always make sure that everything works fine in puresim before changing to veloce
+# Mode is compiled for puresim for simulation or veloce for emulation
 
-compile:
+# make sim runs all in the 'puresim' environment
+sim: clean work build run
+
+# make emu runs all in the 'veloce' environment
+emu: clean work vbuild run
+
+# Create respective work libs and map them
+work:
 	vlib work
-	vlog src/pkg/*.sv
-	vlog src/dut/*.sv
-	vlog src/tb/*.sv
-	vlog src/*.sv
+	vmap work work
+
+# Compile/synthesize the simulation environment
+build:
+	vlog src/pkg/packages.sv					# Compile the package
+	vlog src/tb/mpu_load_store_tb.sv			# Compile the testbench
+	vlog src/dut/mpu_bfm.sv						# Compile the interface
+	vlog src/dut/mpu_register_file.sv			# Compile the DUT register files
+	vlog src/dut/mpu_load.sv					# Compile the load stage
+	vlog src/dut/mpu_store.sv					# Compile the store stage
+	vlog src/dut/mpu_top.sv						# Compile the HDL top
+	velhvl -sim puresim
+
+# Compile/synthesize the emulation environment
+vbuild:
+	vlog src/pkg/packages.sv					# Compile the package
+	vlog src/tb/mpu_load_store_tb.sv			# Compile the testbench
+	velanalyze src/pkg/packages.sv				# Analyze the package for synthesis
+	velanalyze -extract_hvl_info +define+QUESTA src/tb/mpu_load_store_tb.sv	# Analyze the HVL for external task calls in BFM
+	velanalyze src/dut/mpu_bfm.sv				# Analyze the interface for synthesis
+	velanalyze src/dut/mpu_top.sv				# Analyze the HDL top for synthesis
+	velanalyze src/dut/mpu_register_file.sv		# Analyze the DUT register files for synthesis
+	velanalyze src/dut/mpu_load.sv				# Analyze the load stage
+	velanalyze src/dut/mpu_store.sv				# Analyze the store stage
+	velcomp -top mpu_top  						# Synthesize!
+	velhvl -sim veloce
 
 run:
-	vsim -c top -do "run -all; quit"
+	vsim -c -do "run -all; quit -f" mpu_load_store_tb mpu_top	# Run all
+
+norun:	# No run lets you control stepping etc.
+	vsim -c +tbxrun+norun mpu_load_store_tb mpu_top -cpppath $(CPP_PATH)
 
 clean:
-	rm -rf work transcript vsim.wlf
+	rm -rf tbxbindings.h 
+	rm -rf modelsim.ini 
+	rm -rf work
+	rm -rf transcript
+	rm -rf *~
+	rm -rf vsim.wlf
+	rm -rf *.log dgs.dbg
+	rm -rf dmslogdir
+	rm -rf veloce.med
+	rm -rf veloce.wave
+	rm -rf veloce.map
+	rm -rf velrunopts.ini
+	rm -rf edsenv
+

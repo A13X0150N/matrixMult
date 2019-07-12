@@ -7,11 +7,11 @@
 // ----------------------------------------------------------------------------
 // Contains packages with definitions for design and testbench.
 
-timeunit 1ns/100ps;
+//timeunit 1ns/100ps;
 
 // Definitions for global space
 package global_defs;
-    timeunit 1ns/100ps;
+    //timeunit 1ns/100ps;
 
     // Type defines
     typedef enum logic {FALSE, TRUE} bool_t;
@@ -68,7 +68,7 @@ endpackage : fpu_pkg
 
 // MPU BFM interface definitions
 package mpu_pkg;
-    typedef enum logic [1:0] {
+    typedef enum bit [1:0] {
         NOP   = 2'b00,
         LOAD  = 2'b01,
         STORE = 2'b10
@@ -83,5 +83,19 @@ package mpu_pkg;
         STORE_IDLE   = 1'b0,
         STORE_MATRIX = 1'b1
     } store_state_t;
+
+    // Bus sequence item struct
+    typedef struct packed {
+        // Request fields
+        mpu_operation_t op;
+        bit [0:8][31:0] matrix_in;
+        bit [3:0] m_in;
+        bit [3:0] n_in;
+        bit [3:0] matrix_addr;
+      
+        // Response fields
+        bit [0:8][31:0] matrix_out;
+    } mpu_data_t;
+
 endpackage : mpu_pkg
 
