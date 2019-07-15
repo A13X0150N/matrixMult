@@ -8,6 +8,9 @@ sim: clean work build run
 # make emu runs all in the 'veloce' environment
 emu: clean work vbuild run
 
+# make exp runs a side experiment that does not intersect with the design
+exp: clean experiment
+
 # Create respective work libs and map them
 work:
 	vlib work
@@ -38,12 +41,21 @@ vbuild:
 	velcomp -top mpu_top  						# Synthesize!
 	velhvl -sim veloce
 
+# Run a quick experiment on the side
+experiment:
+	vlib work
+	vlog src/experimental/top_exp.sv
+	vsim -c -do "run -all; quit -f" top_exp		# Run experiment
+
+# Run simulation or emulation
 run:
 	vsim -c -do "run -all; quit -f" mpu_load_store_tb mpu_top	# Run all
 
-norun:	# No run lets you control stepping etc.
+# norun lets you control stepping etc.
+norun:
 	vsim -c +tbxrun+norun mpu_load_store_tb mpu_top -cpppath $(CPP_PATH)
 
+# Clean the environment
 clean:
 	rm -rf tbxbindings.h 
 	rm -rf modelsim.ini 
@@ -51,11 +63,11 @@ clean:
 	rm -rf transcript
 	rm -rf *~
 	rm -rf vsim.wlf
-	rm -rf *.log dgs.dbg
+	rm -rf *.log
+	rm -rf dgs.dbg
 	rm -rf dmslogdir
 	rm -rf veloce.med
 	rm -rf veloce.wave
 	rm -rf veloce.map
 	rm -rf velrunopts.ini
 	rm -rf edsenv
-
