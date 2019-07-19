@@ -11,7 +11,7 @@ localparam num1 = 10.5;
 localparam num2 = 2.5;
 
 // Data types
-typedef enum logic [2:0] {
+typedef enum bit [2:0] {
     IDLE,
     LOAD1,
     LOAD2,
@@ -22,15 +22,15 @@ typedef enum logic [2:0] {
 } state_t;
 
 typedef struct packed {
-    logic sign;
-    logic [7:0]  exponent;
-    logic [22:0] mantissa;
+    bit sign;
+    bit [7:0]  exponent;
+    bit [22:0] mantissa;
 } float_t;
 
 typedef struct packed {
-    logic sign;
-    logic [8:0]  exponent;
-    logic [23:0] mantissa;
+    bit sign;
+    bit [8:0]  exponent;
+    bit [23:0] mantissa;
 } internal_float_t;
 
 

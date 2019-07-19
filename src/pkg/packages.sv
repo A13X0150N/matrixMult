@@ -14,7 +14,7 @@ package global_defs;
     //timeunit 1ns/100ps;
 
     // Type defines
-    typedef enum logic {FALSE, TRUE} bool_t;
+    typedef enum bit {FALSE, TRUE} bool_t;
 
     // Floating point sizes
     parameter SP = 32;          // Single precision
@@ -24,7 +24,7 @@ package global_defs;
 
     // Multiplication methods, only make one selection (For experimental directory)
     parameter MULT_SIMULATION = 0;
-    parameter MULT_BOOTH_RADIX4 = 1;
+    parameter MULT_BOOTH = 1;
     parameter MULT_WALLACE = 0;
     
     // Testbench
@@ -58,7 +58,7 @@ endpackage : bit_width
 
 // FPU BFM interface definitions
 package fpu_pkg;
-    typedef enum logic [1:0] {
+    typedef enum bit [1:0] {
         NOP  = 2'b00,
         ADD  = 2'b01,
         MULT = 2'b10
@@ -74,12 +74,12 @@ package mpu_pkg;
         STORE = 2'b10
     } mpu_operation_t;
 
-    typedef enum logic {
+    typedef enum bit {
         LOAD_IDLE   = 1'b0,
         LOAD_MATRIX = 1'b1
     } load_state_t;
 
-    typedef enum logic {
+    typedef enum bit {
         STORE_IDLE   = 1'b0,
         STORE_MATRIX = 1'b1
     } store_state_t;

@@ -69,7 +69,6 @@ module mpu_top;
         .reg_n_load_size_out    (mpu_bfm.reg_n_load_size)
     );
 
-
     // Move matrix from internal register out to memory
     mpu_store store_dut(
         // Control signals

@@ -21,27 +21,27 @@ module mpu_register_file
     input reg_store_en_in,  // Matrix store request
 
     // Load signals
-    input logic [MATRIX_REG_BITS:0] reg_load_addr_in,       // Matrix address to load into  
-    input logic [MBITS:0] reg_i_load_loc_in,                // Matrix input row location
-    input logic [NBITS:0] reg_j_load_loc_in,                // Matrix input column location
-    input logic [MBITS:0] reg_m_load_size_in,               // Matrix input row size
-    input logic [NBITS:0] reg_n_load_size_in,               // Matrix input column size
-    input logic [FPBITS:0] reg_load_element_in,             // Matrix input data
+    input  bit [MATRIX_REG_BITS:0] reg_load_addr_in,       // Matrix address to load into  
+    input  bit [MBITS:0] reg_i_load_loc_in,                // Matrix input row location
+    input  bit [NBITS:0] reg_j_load_loc_in,                // Matrix input column location
+    input  bit [MBITS:0] reg_m_load_size_in,               // Matrix input row size
+    input  bit [NBITS:0] reg_n_load_size_in,               // Matrix input column size
+    input  bit [FPBITS:0] reg_load_element_in,             // Matrix input data
 
     // Store signals
-    input logic [MATRIX_REG_BITS:0] reg_store_addr_in,      // Matrix address to write out from
-    input logic [MBITS:0] reg_i_store_loc_in,               // Matrix output row location
-    input logic [NBITS:0] reg_j_store_loc_in,               // Matrix output column location
-    output logic [MBITS:0] reg_m_store_size_out,            // Matrix output total rows
-    output logic [NBITS:0] reg_n_store_size_out,            // Matrix output total columns
-    output logic [FPBITS:0] reg_store_element_out           // Matrix output data
+    input  bit [MATRIX_REG_BITS:0] reg_store_addr_in,      // Matrix address to write out from
+    input  bit [MBITS:0] reg_i_store_loc_in,               // Matrix output row location
+    input  bit [NBITS:0] reg_j_store_loc_in,               // Matrix output column location
+    output bit [MBITS:0] reg_m_store_size_out,            // Matrix output total rows
+    output bit [NBITS:0] reg_n_store_size_out,            // Matrix output total columns
+    output bit [FPBITS:0] reg_store_element_out           // Matrix output data
 );
 
     import mpu_pkg::*;
 
-    logic [FPBITS:0] matrix_register_array [MATRIX_REGISTERS][M][N];    // Matrix Registers
-    logic [MBITS:0] size_m;                                             // Matrix total rows
-    logic [NBITS:0] size_n;                                             // Matrix total columns
+    bit [FPBITS:0] matrix_register_array [MATRIX_REGISTERS][M][N];    // Matrix Registers
+    bit [MBITS:0] size_m;                                             // Matrix total rows
+    bit [NBITS:0] size_n;                                             // Matrix total columns
 
     // Load a matrix into a register from memory
     always_ff @(posedge clk) begin : matrix_load
