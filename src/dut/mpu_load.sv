@@ -45,19 +45,30 @@ module mpu_load
     bit row_end;
     bit col_end;
 
-    load_state_t state=LOAD_IDLE, next_state;
+    load_state_e state, next_state;
 
-    assign row_end = (row_ptr == (mem_m_load_size_in-1));
-    assign col_end = (col_ptr == (mem_n_load_size_in-1));
-    assign load_finished = row_end & col_end;
+    // Error detection
     assign mem_size_error = (mem_m_load_size_in > M || mem_n_load_size_in > N || !mem_m_load_size_in || !mem_n_load_size_in);
     assign mem_load_error_out = mem_size_error;
+
+    // Matrix address and element
     assign reg_load_addr_out = mem_load_addr_in;
     assign reg_load_element_out = mem_load_element_in;
 
+    // Size and location pointers
+    assign reg_m_load_size_out = mem_m_load_size_in;
+    assign reg_n_load_size_out = mem_n_load_size_in;
+    assign reg_i_load_loc_out = row_ptr;
+    assign reg_j_load_loc_out = col_ptr;
+
+    // End of transfer logic
+    assign row_end = (row_ptr == (mem_m_load_size_in-1));
+    assign col_end = (col_ptr == (mem_n_load_size_in-1));
+    assign load_finished = row_end & col_end;
+
     // State machine driver
     always_ff @(posedge clk) begin : state_machine_driver
-        state <= rst ? LOAD_IDLE : next_state;
+        state <= rst ? LOAD_IDLE : next_state; 
     end : state_machine_driver
 
     // Register (i,j) incremental pointer counter
@@ -74,8 +85,8 @@ module mpu_load
                 end
                 LOAD_MATRIX: begin
                     if (load_finished) begin
-                        row_ptr <= '0;
-                        col_ptr <= '0;
+                        row_ptr <= row_ptr;
+                        col_ptr <= col_ptr;
                     end
                     else if (col_end) begin
                         row_ptr <= row_ptr + 1;
@@ -89,7 +100,6 @@ module mpu_load
             endcase       
         end
     end : matix_indexing
-
 
     // Next state logic
     always_comb begin : next_state_logic
@@ -123,74 +133,40 @@ module mpu_load
         end
     end : next_state_logic
 
-
+    // Matrix register enable output
     always_comb begin : matrix_load_output
         if (rst) begin
-            mem_load_ack_out <= 0;
-            reg_load_en_out <= 0;      
-            reg_i_load_loc_out <= '0;
-            reg_j_load_loc_out <= '0;
-            reg_m_load_size_out <= '0;
-            reg_n_load_size_out <= '0;
+            mem_load_ack_out <= FALSE;
+            reg_load_en_out  <= FALSE;      
         end
         else begin
             unique case (state)
-
-                LOAD_IDLE: begin : load_idle
-                    // Input ready
+                LOAD_IDLE: begin
                     if (load_en_in && !load_finished) begin
-                        // Check for dimension errors
                         if (mem_size_error) begin
-                            mem_load_ack_out <= 0;
-                            reg_load_en_out <= 0;           
-                            reg_i_load_loc_out <= '0;
-                            reg_j_load_loc_out <= '0;
-                            reg_m_load_size_out <= '0;
-                            reg_n_load_size_out <= '0;
+                            mem_load_ack_out <= FALSE;
+                            reg_load_en_out  <= FALSE;           
                         end
-                        // Start loading in the matrix on the next cycle
                         else begin               
-                            mem_load_ack_out <= 1;
-                            reg_load_en_out <= 1;
-                            reg_i_load_loc_out <= row_ptr;
-                            reg_j_load_loc_out <= col_ptr;
-                            reg_m_load_size_out <= mem_m_load_size_in;
-                            reg_n_load_size_out <= mem_n_load_size_in;
+                            mem_load_ack_out <= TRUE;
+                            reg_load_en_out  <= FALSE;
                         end
                     end
-                    // Else, no load input enable signal
                     else begin
-                        mem_load_ack_out <= 0;
-                        reg_load_en_out <= 0;     
-                        reg_i_load_loc_out <= '0;
-                        reg_j_load_loc_out <= '0;
-                        reg_m_load_size_out <= '0;
-                        reg_n_load_size_out <= '0;
-                    end
-                end : load_idle
-
-                LOAD_MATRIX: begin : load_matrix
-                    // If currently in the process of loading a matrix
-                    if (!load_finished) begin
-                        mem_load_ack_out <= 1;
-                        reg_load_en_out <= 1;
-                        reg_i_load_loc_out <= row_ptr;
-                        reg_j_load_loc_out <= col_ptr;                    
-                        reg_m_load_size_out <= mem_m_load_size_in;
-                        reg_n_load_size_out <= mem_n_load_size_in;
-                    end
-
-                    // Else, the matrix has finished loading
-                    else begin
-                        mem_load_ack_out <= 0;
-                        reg_load_en_out <= 1;
-                        reg_i_load_loc_out <= row_ptr;
-                        reg_j_load_loc_out <= col_ptr;
-                        reg_m_load_size_out <= mem_m_load_size_in;
-                        reg_n_load_size_out <= mem_n_load_size_in;
+                        mem_load_ack_out <= FALSE;
+                        reg_load_en_out  <= FALSE;     
                     end
                 end
-            
+                LOAD_MATRIX: begin
+                    if (!load_finished) begin
+                        mem_load_ack_out <= TRUE;
+                        reg_load_en_out  <= TRUE;
+                    end
+                    else begin
+                        mem_load_ack_out <= FALSE;
+                        reg_load_en_out  <= TRUE;
+                    end
+                end
             endcase
         end
     end : matrix_load_output

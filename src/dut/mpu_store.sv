@@ -43,24 +43,27 @@ module mpu_store
     bit row_end;
     bit col_end;
 
-    store_state_t state=STORE_IDLE, next_state;
+    store_state_e state, next_state;
 
-    assign row_end = (row_ptr == (reg_m_store_size_in-1));
-    assign col_end = (col_ptr == (reg_n_store_size_in-1));
-    assign store_finished = row_end & col_end;
+    // Matrix address and element
     assign reg_store_addr_out = mem_store_addr_in;
     assign mem_store_element_out = reg_store_element_in;
+
+    // Size and location pointers
     assign mem_m_store_size_out = reg_m_store_size_in;
     assign mem_n_store_size_out = reg_n_store_size_in;
     assign reg_i_store_loc_out = row_ptr;
     assign reg_j_store_loc_out = col_ptr;
 
+    // End of transfer logic
+    assign row_end = (row_ptr == (reg_m_store_size_in));
+    assign col_end = (col_ptr == (reg_n_store_size_in-1));
+    assign store_finished = row_end & col_end;
 
     // State machine driver
     always_ff @(posedge clk) begin : state_machine_driver
         state <= rst ? STORE_IDLE : next_state;
     end : state_machine_driver
-
 
     // Register (i,j) incremental pointer counter
     always_ff @(posedge clk) begin : matix_indexing
@@ -92,7 +95,6 @@ module mpu_store
         end
     end : matix_indexing
 
-
     // Next state logic
     always_comb begin : next_state_logic
         if (rst) begin
@@ -120,25 +122,30 @@ module mpu_store
         end
     end : next_state_logic
 
-
     // Matrix register enable output
-    always_comb begin
+    always_comb begin : matrix_store_output
         if (rst) begin
-            reg_store_en_out <= 0;
-            mem_store_en_out <= 0;
+            reg_store_en_out <= FALSE;
+            mem_store_en_out <= FALSE;
         end
         else begin
             unique case (state)
                 STORE_IDLE: begin
-                    reg_store_en_out <= 0;
-                    mem_store_en_out <= 0;
+                    reg_store_en_out <= FALSE;
+                    mem_store_en_out <= FALSE;
                 end
                 STORE_MATRIX: begin
-                    reg_store_en_out <= 1;
-                    mem_store_en_out <= 1;
+                    if (!store_finished) begin
+                        reg_store_en_out <= TRUE;
+                        mem_store_en_out <= TRUE;
+                    end
+                    else begin
+                        reg_store_en_out <= FALSE;
+                        mem_store_en_out <= FALSE;
+                    end
                 end
             endcase
         end
-    end
+    end : matrix_store_output
 
 endmodule : mpu_store

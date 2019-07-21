@@ -52,15 +52,15 @@ interface mpu_bfm(input clk, rst);
     // Wait for reset task.
     task wait_for_reset(); // pragma tbx xtf
         @(negedge rst);
-        load_en <= 0;
-        store_en <= 0;
+        load_en <= FALSE;
+        store_en <= FALSE;
         mem_load_element <= '0;
         mem_m_load_size <= '0;
         mem_n_load_size <= '0;
     endtask
 
     // Send an operation into an MPU
-    task send_op(input mpu_data_t req, output mpu_data_t rsp); // pragma tbx xtf
+    task send_op(input mpu_data_sp req, output mpu_data_sp rsp); // pragma tbx xtf
         @(posedge clk); // For a task to be synthesizable for veloce, it must be a clocked task
         case(req.op)
             NOP: begin
@@ -72,7 +72,8 @@ interface mpu_bfm(input clk, rst);
                 mem_m_load_size <= req.m_in;
                 mem_n_load_size <= req.n_in;
                 mem_load_addr <= req.matrix_addr;
-                load_en <= 1;
+                mem_load_element <= req.matrix_in[idx];
+                load_en <= TRUE;
                 while (!mem_load_ack) begin
                     @(posedge clk);
                 end;
@@ -81,13 +82,13 @@ interface mpu_bfm(input clk, rst);
                     idx <= idx + 1;
                     @(posedge clk);
                 end while (mem_load_ack);
-                load_en <= 0;
+                load_en <= FALSE;
             end
 
             STORE: begin
                 mem_store_addr <= req.matrix_addr;
                 idx <= '0;
-                store_en <= 1;
+                store_en <= TRUE;
                 while (!mem_store_en) begin
                     @(posedge clk);
                 end
@@ -97,7 +98,7 @@ interface mpu_bfm(input clk, rst);
                     idx <= idx + 1;
                 end while (mem_store_en);
                 @(posedge clk);
-                store_en <= 0;
+                store_en <= FALSE;
             end
 
         endcase

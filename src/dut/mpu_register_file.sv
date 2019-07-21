@@ -32,9 +32,9 @@ module mpu_register_file
     input  bit [MATRIX_REG_BITS:0] reg_store_addr_in,      // Matrix address to write out from
     input  bit [MBITS:0] reg_i_store_loc_in,               // Matrix output row location
     input  bit [NBITS:0] reg_j_store_loc_in,               // Matrix output column location
-    output bit [MBITS:0] reg_m_store_size_out,            // Matrix output total rows
-    output bit [NBITS:0] reg_n_store_size_out,            // Matrix output total columns
-    output bit [FPBITS:0] reg_store_element_out           // Matrix output data
+    output bit [MBITS:0] reg_m_store_size_out,             // Matrix output total rows
+    output bit [NBITS:0] reg_n_store_size_out,             // Matrix output total columns
+    output bit [FPBITS:0] reg_store_element_out            // Matrix output data
 );
 
     import mpu_pkg::*;
