@@ -8,35 +8,35 @@
 // external source --> register file
 // Load a matrix from an external memory source into the registers one floating
 // point number at a time.
-
+ 
 import global_defs::*;
+import mpu_data_types::*;
 
 module mpu_load 
-(   
+(
     // Control signals
     input clk,              // Clock
     input rst,              // Synchronous reset active high
-    input load_en_in,       // Signal input data
+    input load_req_in,      // Signal input data
 
     // Input matrix from file or memory
-    input bit [FPBITS:0] mem_load_element_in,             // [32|64]-bit float, matrix element
-    input bit [MBITS:0] mem_m_load_size_in,               // m-dimension of input matrix (rows)
-    input bit [NBITS:0] mem_n_load_size_in,               // n-dimension of input matrix (columns)
-    input bit [MATRIX_REG_BITS:0] mem_load_addr_in,       // Matrix address   
-    output bit mem_load_error_out,                      // Error detection
-    output bit mem_load_ack_out,                        // Receive data handshake signal
+    input  float_sp mem_load_element_in,                  // Incoming float, matrix element
+    input  bit [MBITS:0] mem_m_load_size_in,              // m-dimension of input matrix (rows)
+    input  bit [NBITS:0] mem_n_load_size_in,              // n-dimension of input matrix (columns)
+    input  bit [MATRIX_REG_BITS:0] mem_load_addr_in,      // Matrix address   
+    output bit mem_load_error_out,                        // Error detection
+    output bit mem_load_ack_out,                          // Receive data handshake signal
 
     // Output to register file
+    input  bit load_ready_in,                             // Matrix load ready signal
     output bit reg_load_en_out,                           // Matrix load request
     output bit [MATRIX_REG_BITS:0] reg_load_addr_out,     // Matrix address load location 
-    output bit [FPBITS:0] reg_load_element_out,           // Matrix data
+    output float_sp reg_load_element_out,                 // Matrix data
     output bit [MBITS:0] reg_i_load_loc_out,              // Matrix row location
     output bit [NBITS:0] reg_j_load_loc_out,              // Matrix column location
     output bit [MBITS:0] reg_m_load_size_out,             // Matrix row size
     output bit [NBITS:0] reg_n_load_size_out              // Matrix column size
 );
-
-    import mpu_pkg::*;
 
     bit [MBITS:0] row_ptr;
     bit [NBITS:0] col_ptr;
@@ -83,6 +83,10 @@ module mpu_load
                     row_ptr <= '0;
                     col_ptr <= '0;
                 end
+                LOAD_REQUEST: begin
+                    row_ptr <= '0;
+                    col_ptr <= '0;
+                end
                 LOAD_MATRIX: begin
                     if (load_finished) begin
                         row_ptr <= row_ptr;
@@ -109,16 +113,24 @@ module mpu_load
         else begin
             unique case (state)
                 LOAD_IDLE: begin
-                    if (load_en_in && !load_finished) begin
+                    if (load_req_in) begin
                         if (mem_size_error) begin
                             next_state <= LOAD_IDLE;
                         end
                         else begin
-                            next_state <= LOAD_MATRIX;
+                            next_state <= LOAD_REQUEST;
                         end
                     end
                     else begin
                         next_state <= LOAD_IDLE;
+                    end
+                end
+                LOAD_REQUEST: begin
+                    if (load_ready_in) begin
+                        next_state <= LOAD_MATRIX;
+                    end
+                    else begin
+                        next_state <= LOAD_REQUEST;
                     end
                 end
                 LOAD_MATRIX: begin
@@ -142,19 +154,17 @@ module mpu_load
         else begin
             unique case (state)
                 LOAD_IDLE: begin
-                    if (load_en_in && !load_finished) begin
-                        if (mem_size_error) begin
-                            mem_load_ack_out <= FALSE;
-                            reg_load_en_out  <= FALSE;           
-                        end
-                        else begin               
-                            mem_load_ack_out <= TRUE;
-                            reg_load_en_out  <= FALSE;
-                        end
+                    mem_load_ack_out <= FALSE;
+                    reg_load_en_out  <= FALSE;     
+                end
+                LOAD_REQUEST: begin
+                    if (load_ready_in) begin
+                        mem_load_ack_out <= TRUE;
+                        reg_load_en_out  <= FALSE;
                     end
                     else begin
                         mem_load_ack_out <= FALSE;
-                        reg_load_en_out  <= FALSE;     
+                        reg_load_en_out  <= FALSE;
                     end
                 end
                 LOAD_MATRIX: begin

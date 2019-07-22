@@ -9,16 +9,19 @@
 // from memory. Matrices may also be stored out to memory from the registers.
 // I/O is currently performed with a single floating point number at a time.
 // The registers are designed to be load/store dual-ported.
-
+ 
 import global_defs::*;
+import mpu_data_types::*;
 
 module mpu_register_file 
 (
     // Control signals
-    input clk,              // Clock
-    input rst,              // Synchronous reset, active high
-    input reg_load_en_in,   // Matrix load request
-    input reg_store_en_in,  // Matrix store request
+    input clk,                  // Clock
+    input rst,                  // Synchronous reset, active high
+    input reg_load_en_in,       // Matrix load request
+    input reg_store_en_in,      // Matrix store request
+    output bit load_ready_out,  // Matrix load ready signal
+    output bit store_ready_out, // Matrix store ready signal
 
     // Load signals
     input  bit [MATRIX_REG_BITS:0] reg_load_addr_in,       // Matrix address to load into  
@@ -37,11 +40,15 @@ module mpu_register_file
     output bit [FPBITS:0] reg_store_element_out            // Matrix output data
 );
 
-    import mpu_pkg::*;
+    float_sp matrix_register_array [MATRIX_REGISTERS][M][N];    // Matrix Registers
+    bit [MBITS:0] size_m;                                       // Matrix total rows
+    bit [NBITS:0] size_n;                                       // Matrix total columns
 
-    bit [FPBITS:0] matrix_register_array [MATRIX_REGISTERS][M][N];    // Matrix Registers
-    bit [MBITS:0] size_m;                                             // Matrix total rows
-    bit [NBITS:0] size_n;                                             // Matrix total columns
+    bit [MATRIX_REGISTERS-1:0] currently_reading;               // One-hot set of registers being read from
+    bit [MATRIX_REGISTERS-1:0] currently_writing;               // One-hot set of registers being read from
+
+    assign load_ready_out = ~|(reg_load_addr_in & (currently_writing | currently_reading));
+    assign store_ready_out = ~|(reg_store_addr_in & currently_writing);
 
     // Load a matrix into a register from memory
     always_ff @(posedge clk) begin : matrix_load
@@ -64,5 +71,35 @@ module mpu_register_file
             reg_store_element_out <= matrix_register_array[reg_store_addr_in][reg_i_store_loc_in][reg_j_store_loc_in];    
         end
     end : matrix_store
+
+    // Logic for tracking registers actively being written to
+    always_ff @(posedge clk) begin : active_write
+        if (rst) begin
+            currently_writing <= '0;
+        end
+        else begin
+            if (reg_load_en_in) begin
+                currently_writing <= currently_writing | (1 << reg_load_addr_in);
+            end
+            else begin
+                currently_writing <= currently_writing & ~(1 << reg_load_addr_in);
+            end
+        end
+    end : active_write
+
+    // Logic for tracking registers actively being read from
+    always_ff @(posedge clk) begin : active_read
+        if (rst) begin
+            currently_reading <= '0;
+        end
+        else begin
+            if (reg_store_en_in) begin
+                currently_reading <= currently_reading | (1 << reg_store_addr_in);
+            end
+            else begin
+                currently_reading <= currently_reading & ~(1 << reg_store_addr_in);
+            end
+        end
+    end : active_read
 
 endmodule : mpu_register_file

@@ -8,10 +8,9 @@
 // Testbench to check the load and store ability of the design.
 
 import global_defs::*;
+import mpu_data_types::*;
 
 module mpu_load_store_tb;
-
-    import mpu_pkg::*;
     import testbench_utilities::*;
 
     // Test variables
@@ -116,7 +115,6 @@ module mpu_load_store_tb;
         //display_message("Operation: NOP");
         //data_in.op = NOP;
         //mpu_top.mpu_bfm.send_op(data_in, data_out);
-
         //simulation_register_dump(mpu_top.matrix_register_file.matrix_register_array);
 
         display_message("Operation: STORE");

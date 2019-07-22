@@ -6,12 +6,12 @@
 // Desciption:
 // ----------------------------------------------------------------------------
 // Top-level design for DUT and testbench. Eventually migrate to UVM.
-
+ 
 import global_defs::*;
+import mpu_data_types::*;
 
 module mpu_top;
-
-    import mpu_pkg::*;
+    import testbench_utilities::CLOCK_PERIOD;
 
     bit clk=0;      // System clock
     bit rst=0;      // Synchronous reset, active high
@@ -26,6 +26,8 @@ module mpu_top;
         .rst                    (rst),
         .reg_load_en_in         (mpu_bfm.reg_load_en),
         .reg_store_en_in        (mpu_bfm.reg_store_en),
+        .load_ready_out         (mpu_bfm.load_ready),
+        .store_ready_out        (mpu_bfm.store_ready),
 
         // To MPU load
         .reg_load_addr_in       (mpu_bfm.reg_load_addr),
@@ -49,7 +51,7 @@ module mpu_top;
         // Control signals
         .clk                    (clk),
         .rst                    (rst),
-        .load_en_in             (mpu_bfm.load_en),
+        .load_req_in            (mpu_bfm.load_req),
 
         // To memory
         .mem_load_element_in    (mpu_bfm.mem_load_element),
@@ -60,6 +62,7 @@ module mpu_top;
         .mem_load_ack_out       (mpu_bfm.mem_load_ack),
 
         // To matrix register file
+        .load_ready_in          (mpu_bfm.load_ready),
         .reg_load_en_out        (mpu_bfm.reg_load_en),
         .reg_load_addr_out      (mpu_bfm.reg_load_addr),
         .reg_load_element_out   (mpu_bfm.reg_load_element),
@@ -74,9 +77,10 @@ module mpu_top;
         // Control signals
         .clk                    (clk),
         .rst                    (rst),
-        .store_en_in            (mpu_bfm.store_en),
+        .store_req_in           (mpu_bfm.store_req),
 
         // To matrix register file
+        .store_ready_in         (mpu_bfm.store_ready),
         .reg_store_element_in   (mpu_bfm.reg_store_element),
         .reg_m_store_size_in    (mpu_bfm.reg_m_store_size),
         .reg_n_store_size_in    (mpu_bfm.reg_n_store_size),

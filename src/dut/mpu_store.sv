@@ -10,16 +10,18 @@
 // point number at a time.
 
 import global_defs::*;
+import mpu_data_types::*;
 
 module mpu_store
 (
     // Control signals
     input clk,          // Clock
     input rst,          // Synchronous reset active high
-    input store_en_in,  // Signal input data
+    input store_req_in, // Signal input data
 
     // To register file
-    input  bit [FPBITS:0] reg_store_element_in,            // [32|64]-bit float, matrix element
+    input  bit store_ready_in,                             // Matrix store ready signal
+    input  float_sp reg_store_element_in,                  // Incoming float, matrix element
     input  bit [MBITS:0] reg_m_store_size_in,              // Register matrix M total rows
     input  bit [NBITS:0] reg_n_store_size_in,              // Register matrix N total columns
     output bit reg_store_en_out,                           // Store enable signal
@@ -32,10 +34,8 @@ module mpu_store
     output bit mem_store_en_out,                           // Signal for store enable
     output bit [MBITS:0] mem_m_store_size_out,             // M total rows
     output bit [NBITS:0] mem_n_store_size_out,             // N total columns
-    output bit [FPBITS:0] mem_store_element_out            // Matrix element output
+    output float_sp mem_store_element_out                  // Matrix element output
 );
-
-    import mpu_pkg::*;
 
     bit [MBITS:0] row_ptr;
     bit [NBITS:0] col_ptr;
@@ -77,6 +77,10 @@ module mpu_store
                     row_ptr <= '0;
                     col_ptr <= '0;
                 end
+                STORE_REQUEST: begin
+                    row_ptr <= '0;
+                    col_ptr <= '0;
+                end
                 STORE_MATRIX: begin
                     if (store_finished) begin
                         row_ptr <= row_ptr;
@@ -103,11 +107,19 @@ module mpu_store
         else begin
             unique case (state)
                 STORE_IDLE: begin
-                    if (store_en_in && !store_finished) begin
-                        next_state <= STORE_MATRIX;
+                    if (store_req_in) begin
+                        next_state <= STORE_REQUEST;
                     end
                     else begin
                         next_state <= STORE_IDLE;
+                    end
+                end
+                STORE_REQUEST: begin
+                    if (store_ready_in) begin
+                        next_state <= STORE_MATRIX;
+                    end
+                    else begin
+                        next_state <= STORE_REQUEST;
                     end
                 end
                 STORE_MATRIX: begin
@@ -131,6 +143,10 @@ module mpu_store
         else begin
             unique case (state)
                 STORE_IDLE: begin
+                    reg_store_en_out <= FALSE;
+                    mem_store_en_out <= FALSE;
+                end
+                STORE_REQUEST: begin
                     reg_store_en_out <= FALSE;
                     mem_store_en_out <= FALSE;
                 end

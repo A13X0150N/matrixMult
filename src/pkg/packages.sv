@@ -7,54 +7,44 @@
 // ----------------------------------------------------------------------------
 // Contains packages with definitions for design and testbench.
 
-
+ 
 // Definitions for global space
 package global_defs;
 
-    // Type defines
-    typedef enum bit {FALSE, TRUE} bool_e;
+    //////////////////////////// * * *  ADJUSTABLE TOP-LEVEL PARAMETERS  * * * ////////////////////////////
 
-    // Floating point sizes
-    parameter SP = 32;                      // Single precision
-    parameter DP = 64;                      // Double precions [untested]
-    parameter FP = SP;                      // Selection for design
-    parameter FPBITS = FP-1;                // Floating point bit number
+    parameter FP = 32;                      // Floating point bit selection
+    parameter M = 5;                        // Maximum register row size
+    parameter K = 3;                        // Maximum register intermediate size (m x k)(k x n) [untested]
+    parameter N = 5;                        // Maximum register column size
+    parameter MATRIX_REGISTERS = 8;         // Size of matrix register file
 
-    // Multiplication methods, only make one selection (For experimental directory)
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+    // Multiplication methods, only make one selection [currently experimental]
     parameter MULT_SIMULATION = 0;
     parameter MULT_BOOTH = 1;
     parameter MULT_WALLACE = 0;
-    
-    // Testbench
-    parameter CLOCK_PERIOD = 10;
-    parameter CYCLES = 100;
 
-    // Maximum working matrix dimensions (m x k)(k x n)
-    parameter M = 5;                        // Maximum register row size
-    parameter K = 3;                        // Maximum register intermediate size [untested]
-    parameter N = 5;                        // Maximum register  column size
+    // Maximum working matrix dimensions
+    parameter FPBITS = FP-1;                // Floating point bit number
     parameter MBITS = $clog2(M)-1;          // Register row bits
     parameter KBITS = $clog2(K)-1;          // Register intermediate bits
     parameter NBITS = $clog2(N)-1;          // Register column bits
-    parameter M_MEM = 3;                    // Testbench input matrix rows     MUST BE LESS THAN M (remove?)
-    parameter N_MEM = 3;                    // Testbench input matrix columns  MUST BE LESS THAN N (remove?)
-    parameter NUM_ELEMENTS = M_MEM * N_MEM; // Number of input elements for testbench
-
-    // Size of matrix register file
-    parameter MATRIX_REGISTERS = 8;
-    parameter MATRIX_REG_BITS = $clog2(MATRIX_REGISTERS)-1;
+    parameter MATRIX_REG_BITS = $clog2(MATRIX_REGISTERS)-1;  // Register address bits
 
 endpackage : global_defs
 
 
-// Input/Output bit width for multiplication
+// Input/Output bit width for multiplication   remove?
 package bit_width;
     parameter  INWIDTH  = 16;
     localparam OUTWIDTH = INWIDTH * 2;
 endpackage : bit_width
 
 
-// FPU BFM interface definitions
+// FPU BFM interface definitions   remove?
 package fpu_pkg;
     typedef enum bit [1:0] {
         NOP  = 2'b00,
@@ -65,57 +55,80 @@ endpackage : fpu_pkg
 
 
 // MPU BFM interface definitions
-package mpu_pkg;
-
+package mpu_data_types;
     import global_defs::FPBITS;
-    import global_defs::NUM_ELEMENTS;
     import global_defs::MBITS;
     import global_defs::NBITS;
     import global_defs::MATRIX_REG_BITS;
 
-    typedef enum bit [1:0] {
-        NOP   = 2'd0,
-        LOAD  = 2'd1,
-        STORE = 2'd2
-    } mpu_operation_e;
-
+    // Boolean data type
     typedef enum bit {
-        LOAD_IDLE   = 1'b0,
-        LOAD_MATRIX = 1'b1
+        FALSE, 
+        TRUE
+    } bool_e;
+
+    // MPU instructions
+    typedef enum bit [1:0] {
+        NOP,
+        LOAD,
+        STORE
+    } mpu_instruction_e;
+
+    // Load states
+    typedef enum bit [1:0] {
+        LOAD_IDLE,
+        LOAD_REQUEST,
+        LOAD_MATRIX
     } load_state_e;
 
-    typedef enum bit {
-        STORE_IDLE   = 1'b0,
-        STORE_MATRIX = 1'b1
+    // Store states
+    typedef enum bit [1:0] {
+        STORE_IDLE,
+        STORE_REQUEST,
+        STORE_MATRIX
     } store_state_e;
 
+    // Floating point data type
+    typedef struct packed {
+        bit sign;
+        bit [7:0]  exponent;
+        bit [22:0] mantissa;
+    } float_sp;
 
     // Bus sequence item struct
     typedef struct packed {
         // Request fields
-        mpu_operation_e op;
-        bit [0:NUM_ELEMENTS-1][FPBITS:0] matrix_in;
+        mpu_instruction_e op;
+        float_sp [0:8] matrix_in;
         bit [MBITS:0] m_in;
         bit [NBITS:0] n_in;
         bit [MATRIX_REG_BITS:0] matrix_addr;
       
         // Response fields
-        bit [0:NUM_ELEMENTS-1][FPBITS:0] matrix_out;
+        float_sp [0:8] matrix_out;
     } mpu_data_sp;
 
-endpackage : mpu_pkg
+endpackage : mpu_data_types
 
 
 // Testbench functions and tasks
 package testbench_utilities;
-
-    import global_defs::NUM_ELEMENTS;
     import global_defs::FPBITS;
     import global_defs::MATRIX_REGISTERS;
     import global_defs::M;
     import global_defs::N;
-    import mpu_pkg::mpu_data_sp;
+    import mpu_data_types::mpu_data_sp;
+    import mpu_data_types::float_sp;
 
+    // Clock Controller
+    parameter CLOCK_PERIOD = 10;
+    parameter CYCLES = 100;
+
+    parameter M_MEM = 3;                        // Testbench input matrix rows     MUST BE LESS THAN M (remove?)
+    parameter N_MEM = 3;                        // Testbench input matrix columns  MUST BE LESS THAN N (remove?)
+    parameter NUM_ELEMENTS = M_MEM * N_MEM;     // Number of input elements per matrix for testbench
+
+    // Matrix generator
     task generate_matrix(input shortreal seed, input shortreal scale, output mpu_data_sp genmat);
         for (int i = 0; i < NUM_ELEMENTS; i = i + 1) begin
             genmat.matrix_in = {(genmat.matrix_in), $shortrealtobits(seed + i * scale)};
@@ -123,8 +136,8 @@ package testbench_utilities;
     endtask : generate_matrix
 
     // Matrix Output
-    task show_matrix(input bit [0:NUM_ELEMENTS-1][FPBITS:0] matrix_in);
-        bit [FPBITS:0] matrix [NUM_ELEMENTS];
+    task show_matrix(input float_sp [0:NUM_ELEMENTS-1] matrix_in);
+        float_sp matrix [NUM_ELEMENTS];
         {>>{matrix}} = matrix_in;
         if (NUM_ELEMENTS == 4) begin
             $display("\t2x2 MATRIX REGISTER\n\t %f\t%f \n\t %f\t%f \n", 
@@ -147,6 +160,7 @@ package testbench_utilities;
         end
     endtask : show_matrix
 
+    // Display a message with a border
     function void display_message(input string message);
         static int number_of_dashes, i;
         number_of_dashes = message.len() + 2;
@@ -162,7 +176,7 @@ package testbench_utilities;
     endfunction : display_message
 
     // Internal Register Dump   SIMULATION ONLY
-    task simulation_register_dump(bit [FPBITS:0] matrix_register_array [MATRIX_REGISTERS][M][N]);
+    task simulation_register_dump(float_sp matrix_register_array [MATRIX_REGISTERS][M][N]);
         display_message("REGISTER DUMP");
         $display("\t3x3 MATRIX REGISTER[0]\n\t %f\t%f\t%f \n\t %f\t%f\t%f \n\t %f\t%f\t%f \n", 
                     $bitstoshortreal(matrix_register_array[0][0][0]),
@@ -247,3 +261,4 @@ package testbench_utilities;
     endtask : simulation_register_dump
 
 endpackage : testbench_utilities
+
