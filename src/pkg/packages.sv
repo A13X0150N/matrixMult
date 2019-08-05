@@ -15,43 +15,43 @@ package global_defs;
 
     parameter FP = 32;                      // Floating point bit selection
     parameter M = 5;                        // Maximum register row size
-    parameter K = 3;                        // Maximum register intermediate size (m x k)(k x n) [untested]
     parameter N = 5;                        // Maximum register column size
     parameter MATRIX_REGISTERS = 8;         // Size of matrix register file
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-    // Multiplication methods, only make one selection [currently experimental]
-    parameter MULT_SIMULATION = 0;
-    parameter MULT_BOOTH = 1;
-    parameter MULT_WALLACE = 0;
+    // Single-precision floating point
+    //if (FP == 32) begin
+        parameter MIN_EXP = -126;
+        parameter MAX_EXP = 127;
+        parameter EXP_OFFSET = 127;
+        parameter EXPBITS = 8;
+        parameter MANBITS = 23;
+    //end
+    // Double-precision floating point
+    /*else if (FP == 64) begin
+        parameter MIN_EXP = -1022;
+        parameter MAX_EXP = 1023;
+        parameter EXP_OFFSET = 1023;
+        parameter EXPBITS = 11;
+        parameter MANBITS = 52;
+    end
+    // Invalid selection
+    else begin
+        parameter MIN_EXP = 0;
+        parameter MAX_EXP = 0;
+        parameter EXP_OFFSET = 0;
+        parameter EXPBITS = 0;
+        parameter MANBITS = 0;
+    end*/
 
     // Maximum working matrix dimensions
     parameter FPBITS = FP-1;                // Floating point bit number
     parameter MBITS = $clog2(M)-1;          // Register row bits
-    parameter KBITS = $clog2(K)-1;          // Register intermediate bits
     parameter NBITS = $clog2(N)-1;          // Register column bits
     parameter MATRIX_REG_BITS = $clog2(MATRIX_REGISTERS)-1;  // Register address bits
 
 endpackage : global_defs
-
-
-// Input/Output bit width for multiplication   remove?
-package bit_width;
-    parameter  INWIDTH  = 16;
-    localparam OUTWIDTH = INWIDTH * 2;
-endpackage : bit_width
-
-
-// FPU BFM interface definitions   remove?
-package fpu_pkg;
-    typedef enum bit [1:0] {
-        NOP  = 2'b00,
-        ADD  = 2'b01,
-        MULT = 2'b10
-    } fpu_operation_t;
-endpackage : fpu_pkg
 
 
 // MPU BFM interface definitions
@@ -60,6 +60,8 @@ package mpu_data_types;
     import global_defs::MBITS;
     import global_defs::NBITS;
     import global_defs::MATRIX_REG_BITS;
+    import global_defs::EXPBITS;
+    import global_defs::MANBITS;
 
     // Boolean data type
     typedef enum bit {
@@ -69,10 +71,18 @@ package mpu_data_types;
 
     // MPU instructions
     typedef enum bit [1:0] {
-        NOP,
-        LOAD,
-        STORE
+        MPU_NOP,
+        MPU_LOAD,
+        MPU_STORE
     } mpu_instruction_e;
+
+    // FPU instructions
+    typedef enum bit [1:0] {
+        FPU_NOP,
+        FPU_FMA,
+        FPU_MULTIPLY,
+        FPU_ADD
+    } fpu_instruction_e;
 
     // Load states
     typedef enum bit [1:0] {
@@ -88,14 +98,33 @@ package mpu_data_types;
         STORE_MATRIX
     } store_state_e;
 
+    // FMA states
+    typedef enum bit [2:0] {
+        IDLE,
+        LOAD,
+        MULTIPLY,
+        ALIGN,
+        ACCUMULATE,
+        NORMALIZE,
+        OUTPUT,
+        ERROR
+    } fma_state_t;
+
     // Floating point data type
     typedef struct packed {
         bit sign;
-        bit [7:0]  exponent;
-        bit [22:0] mantissa;
+        bit [EXPBITS-1:0] exponent;
+        bit [MANBITS-1:0] mantissa;
     } float_sp;
 
-    // Bus sequence item struct
+    // Internal floating point data type
+    typedef struct packed {
+        bit sign;
+        bit [EXPBITS-1:0]   exponent;
+        bit [2*MANBITS+3:0] mantissa;
+    } internal_float_sp;
+
+    // MPU bus sequence item struct
     typedef struct packed {
         // Request fields
         mpu_instruction_e op;
@@ -107,6 +136,18 @@ package mpu_data_types;
         // Response fields
         float_sp [0:8] matrix_out;
     } mpu_data_sp;
+
+     // FPU bus sequence item struct
+    typedef struct packed {
+        // Request fields
+        fpu_instruction_e op;
+        float_sp a;
+        float_sp b;
+        float_sp c;
+
+        // Response fields
+        float_sp y;
+    } fpu_data_sp;
 
 endpackage : mpu_data_types
 
@@ -122,7 +163,7 @@ package testbench_utilities;
 
     // Clock Controller
     parameter CLOCK_PERIOD = 10;
-    parameter CYCLES = 100;
+    parameter CYCLES = 15;
 
     parameter M_MEM = 3;                        // Testbench input matrix rows     MUST BE LESS THAN M (remove?)
     parameter N_MEM = 3;                        // Testbench input matrix columns  MUST BE LESS THAN N (remove?)

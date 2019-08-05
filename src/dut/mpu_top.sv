@@ -16,8 +16,9 @@ module mpu_top;
     bit clk=0;      // System clock
     bit rst=0;      // Synchronous reset, active high
 
-    // Interface
+    // Interfaces
     mpu_bfm mpu_bfm(clk, rst);
+    fpu_bfm fpu_bfm(clk, rst);
 
     // Register file
     mpu_register_file matrix_register_file(
@@ -88,13 +89,23 @@ module mpu_top;
         .reg_i_store_loc_out    (mpu_bfm.reg_i_store_loc),
         .reg_j_store_loc_out    (mpu_bfm.reg_j_store_loc),
         .reg_store_addr_out     (mpu_bfm.reg_store_addr),        
-        
+
         // To memory
         .mem_store_addr_in      (mpu_bfm.mem_store_addr),
         .mem_store_en_out       (mpu_bfm.mem_store_en),
         .mem_m_store_size_out   (mpu_bfm.mem_m_store_size),
         .mem_n_store_size_out   (mpu_bfm.mem_n_store_size),
         .mem_store_element_out  (mpu_bfm.mem_store_element)
+    );
+
+    fma fma(
+        .clk(clk),
+        .rst(rst),
+        .start_in(fpu_bfm.start),
+        .float_in(fpu_bfm.float_in),
+        .float_out(fpu_bfm.float_out),
+        .error_out(fpu_bfm.error),
+        .ready_out(fpu_bfm.ready)
     );
 
     // Free running clock
@@ -110,7 +121,7 @@ module mpu_top;
     // tbx clkgen
     initial begin
         rst = 1;
-        #(CLOCK_PERIOD*5) rst = 0;
+        #(CLOCK_PERIOD*2) rst = 0;
     end
 
 endmodule : mpu_top

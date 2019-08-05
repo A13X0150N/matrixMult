@@ -19,25 +19,32 @@ work:
 # Compile/synthesize the simulation environment
 build:
 	vlog src/pkg/packages.sv					# Compile the package
-	vlog src/tb/mpu_load_store_tb.sv			# Compile the testbench
-	vlog src/dut/mpu_bfm.sv						# Compile the interface
+	#vlog src/tb/mpu_load_store_tb.sv			# Compile the MPU testbench
+	vlog src/tb/fpu_fma_tb.sv					# Compile the FPU testbench
+	vlog src/dut/mpu_bfm.sv						# Compile the MPU interface
+	vlog src/dut/fpu_bfm.sv						# Compile the FPU interface
 	vlog src/dut/mpu_register_file.sv			# Compile the DUT register files
 	vlog src/dut/mpu_load.sv					# Compile the load stage
 	vlog src/dut/mpu_store.sv					# Compile the store stage
+	vlog src/dut/fpu_fma.sv						# Compile the FPU
 	vlog src/dut/mpu_top.sv						# Compile the HDL top
 	velhvl -sim puresim
 
 # Compile/synthesize the emulation environment
 vbuild:
 	vlog src/pkg/packages.sv					# Compile the package
-	vlog src/tb/mpu_load_store_tb.sv			# Compile the testbench
+	vlog src/tb/mpu_load_store_tb.sv			# Compile the MPU testbench
+	vlog src/tb/fpu_fma_tb.sv					# Compile the FPU testbench
 	velanalyze src/pkg/packages.sv				# Analyze the package for synthesis
-	velanalyze -extract_hvl_info +define+QUESTA src/tb/mpu_load_store_tb.sv	# Analyze the HVL for external task calls in BFM
-	velanalyze src/dut/mpu_bfm.sv				# Analyze the interface for synthesis
+	#velanalyze -extract_hvl_info +define+QUESTA src/tb/mpu_load_store_tb.sv	# Analyze the HVL for external task calls in BFM
+	velanalyze -extract_hvl_info +define+QUESTA src/tb/fpu_fma_tb.sv			# Analyze the HVL for external task calls in BFM
+	velanalyze src/dut/mpu_bfm.sv				# Analyze the MPU interface for synthesis
+	velanalyze src/dut/fpu_bfm.sv				# Analyze the FPU interface for synthesis
 	velanalyze src/dut/mpu_top.sv				# Analyze the HDL top for synthesis
 	velanalyze src/dut/mpu_register_file.sv		# Analyze the DUT register files for synthesis
 	velanalyze src/dut/mpu_load.sv				# Analyze the load stage
 	velanalyze src/dut/mpu_store.sv				# Analyze the store stage
+	velanalyze src/dut/fpu_fma.sv				# Analyze the FPU
 	velcomp -top mpu_top  						# Synthesize!
 	velhvl -sim veloce
 
@@ -49,7 +56,8 @@ experiment:
 
 # Run simulation or emulation
 run:
-	vsim -c -do "run -all; quit -f" mpu_load_store_tb mpu_top	# Run all
+	#vsim -c -do "run -all; quit -f" mpu_load_store_tb mpu_top	# Run all
+	vsim -c -do "run -all; quit -f" fpu_fma_tb mpu_top			# Run all
 
 # norun lets you control stepping etc.
 norun:

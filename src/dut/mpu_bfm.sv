@@ -11,7 +11,7 @@
 import global_defs::*;
 import mpu_data_types::*;
 
-interface mpu_bfm(input clk, rst);
+interface mpu_bfm(input clk, rst); 
 // pragma attribute mpu_bfm partition_interface_xif
 
     // Control signals
@@ -66,11 +66,11 @@ interface mpu_bfm(input clk, rst);
     task send_op(input mpu_data_sp req, output mpu_data_sp rsp); // pragma tbx xtf
         @(posedge clk); // For a task to be synthesizable for veloce, it must be a clocked task
         case(req.op)
-            NOP: begin
+            MPU_NOP: begin
                 @(posedge clk);
             end
 
-            LOAD: begin 
+            MPU_LOAD: begin 
                 idx <= '0;
                 mem_m_load_size <= req.m_in;
                 mem_n_load_size <= req.n_in;
@@ -88,7 +88,7 @@ interface mpu_bfm(input clk, rst);
                 load_req <= FALSE;
             end
 
-            STORE: begin
+            MPU_STORE: begin
                 mem_store_addr <= req.matrix_addr;
                 idx <= '0;
                 store_req <= TRUE;

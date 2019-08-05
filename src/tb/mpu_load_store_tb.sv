@@ -33,15 +33,15 @@ module mpu_load_store_tb;
         $display("\t %2d rows \n\t %2d columns", data_in.m_in, data_in.n_in);
 
         display_message("Operation: NOP");
-        data_in.op = NOP;
+        data_in.op = MPU_NOP;
         mpu_top.mpu_bfm.send_op(data_in, data_out);
         
         display_message("Operation: LOAD");
         $display("\tGenerating and loading %2d matrices into MPU to fill internal matrix registers\n", MATRIX_REGISTERS);
-        data_in.op = LOAD;
+        data_in.op = MPU_LOAD;
 
         generate_matrix(1.0, 100.0, data_in);
-        data_in.op = LOAD;
+        data_in.op = MPU_LOAD;
         data_in.m_in = M_MEM;
         data_in.n_in = N_MEM;
         data_in.matrix_addr = 0;
@@ -50,7 +50,7 @@ module mpu_load_store_tb;
         mpu_top.mpu_bfm.send_op(data_in, data_out);
 
         generate_matrix(20.0, 0.001, data_in);
-        data_in.op = LOAD;
+        data_in.op = MPU_LOAD;
         data_in.m_in = M_MEM;
         data_in.n_in = N_MEM;
         data_in.matrix_addr = 1;
@@ -59,7 +59,7 @@ module mpu_load_store_tb;
         mpu_top.mpu_bfm.send_op(data_in, data_out);
 
         generate_matrix(300.0, 2340000.4, data_in);
-        data_in.op = LOAD;
+        data_in.op = MPU_LOAD;
         data_in.m_in = M_MEM;
         data_in.n_in = N_MEM;
         data_in.matrix_addr = 2;
@@ -68,7 +68,7 @@ module mpu_load_store_tb;
         mpu_top.mpu_bfm.send_op(data_in, data_out);
 
         generate_matrix(-41.0, 100.0, data_in);
-        data_in.op = LOAD;
+        data_in.op = MPU_LOAD;
         data_in.m_in = M_MEM;
         data_in.n_in = N_MEM;
         data_in.matrix_addr = 3;
@@ -77,7 +77,7 @@ module mpu_load_store_tb;
         mpu_top.mpu_bfm.send_op(data_in, data_out);
 
         generate_matrix(-33331.0, 0.01, data_in);
-        data_in.op = LOAD;
+        data_in.op = MPU_LOAD;
         data_in.m_in = M_MEM;
         data_in.n_in = N_MEM;
         data_in.matrix_addr = 4;
@@ -86,7 +86,7 @@ module mpu_load_store_tb;
         mpu_top.mpu_bfm.send_op(data_in, data_out);
 
         generate_matrix(-0.005, 1076570.0, data_in);
-        data_in.op = LOAD;
+        data_in.op = MPU_LOAD;
         data_in.m_in = M_MEM;
         data_in.n_in = N_MEM;
         data_in.matrix_addr = 5;
@@ -95,7 +95,7 @@ module mpu_load_store_tb;
         mpu_top.mpu_bfm.send_op(data_in, data_out);
 
         generate_matrix(1.0, -1.0, data_in);
-        data_in.op = LOAD;
+        data_in.op = MPU_LOAD;
         data_in.m_in = M_MEM;
         data_in.n_in = N_MEM;
         data_in.matrix_addr = 6;
@@ -104,7 +104,7 @@ module mpu_load_store_tb;
         mpu_top.mpu_bfm.send_op(data_in, data_out);
 
         generate_matrix(1.0, 1.0, data_in);
-        data_in.op = LOAD;
+        data_in.op = MPU_LOAD;
         data_in.m_in = M_MEM;
         data_in.n_in = N_MEM;
         data_in.matrix_addr = 7;
@@ -118,7 +118,7 @@ module mpu_load_store_tb;
         //simulation_register_dump(mpu_top.matrix_register_file.matrix_register_array);
 
         display_message("Operation: STORE");
-        data_in.op = STORE;
+        data_in.op = MPU_STORE;
         for (i = 0; i < MATRIX_REGISTERS; ++i) begin
             data_in.matrix_addr = i;
             mpu_top.mpu_bfm.send_op(data_in, data_out);
@@ -127,7 +127,7 @@ module mpu_load_store_tb;
         end
 
         display_message("Operation: NOP");
-        data_in.op = NOP;
+        data_in.op = MPU_NOP;
         mpu_top.mpu_bfm.send_op(data_in, data_out);
 
         $display("\n");

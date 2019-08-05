@@ -1,121 +1,9 @@
-// top_exp.sv
-
-localparam CLOCK_PERIOD = 10;
-localparam CYCLES = 12;
-
-parameter MIN_EXP = -126;
-parameter MAX_EXP = 127;
-parameter EXP_OFFSET = 127;
-parameter EXPBITS = 8;
-parameter MANBITS = 23;
-
-localparam num1 = 1.75;
-localparam num2 = 1.5;
-localparam num3 = 1.0;
-
-// Data types
-typedef enum bit [2:0] {
-    IDLE,
-    LOAD,
-    MULTIPLY,
-    ALIGN,
-    ACCUMULATE,
-    NORMALIZE,
-    OUTPUT,
-    ERROR
-} state_t;
-
-typedef enum bit {
-    FALSE, 
-    TRUE
-} bool_e;
-
-typedef struct packed {
-    bit sign;
-    bit [EXPBITS-1:0] exponent;
-    bit [MANBITS-1:0] mantissa;
-} float_sp;
-
-typedef struct packed {
-    bit sign;
-    bit [EXPBITS-1:0]   exponent;
-    bit [2*MANBITS+3:0] mantissa;
-} internal_float_sp;
-
-
-// Testbench
-module top_exp;
-    initial $display("\n\n\t *** Starting Tests *** \n");
-    initial #(CLOCK_PERIOD * CYCLES) $finish;
-
-    // Clock Generator
-    bit clk;
-    initial begin : clock_generator
-        clk = 0;
-        forever #(CLOCK_PERIOD/2) clk = ~clk;
-    end : clock_generator
-
-    // Synchronous Reset Generator
-    bit rst;
-    task reset();
-        rst = 0;
-        @(posedge clk);
-        rst = 1;
-        @(posedge clk);
-        rst = 0;
-        @(posedge clk);
-    endtask : reset
-
-    // Test variables
-    float_sp float_in, float_in1, float_in2, float_in3, calc_float, float_out;
-    bit error_out, start_in, ready_out;
-
-    // Unit Under Test
-    fma uut(
-        .clk(clk),
-        .rst(rst),
-        .start_in(start_in),
-        .float_in(float_in),
-        .float_out(float_out),
-        .error_out(error_out),
-        .ready_out(ready_out)
-    );
-
-    // Main Test Sequence
-    initial begin
-        reset();
-        start_in = FALSE;
-        $display("\n * * * FMA test begin * * * \n");
-        start_in = TRUE;
-        float_in1 = $shortrealtobits(num1);
-        float_in = float_in1;
-        @(posedge clk);
-        start_in = FALSE;
-
-        float_in2 = $shortrealtobits(num2);
-        float_in = float_in2;
-        @(posedge clk);
-
-        float_in3 = $shortrealtobits(num3);
-        float_in = float_in3;
-        @(posedge clk);
-
-        calc_float = $shortrealtobits(num1 * num2 + num3);
-        $display("float_in1: %f  %x\t\t\t\tfloat_in2: %f  %x\t\t\t\tfloat_in3: %f  %x", $bitstoshortreal(float_in1), float_in1, $bitstoshortreal(float_in2), float_in2, $bitstoshortreal(float_in3), float_in3);
-        $display("float_in1.exp: %d   float_in1.man: %d\t\tfloat_in2.exp: %d   float_in2.man: %d\t\tfloat_in3.exp: %d   float_in3.man: %d", float_in1.exponent, float_in1.mantissa, $signed(float_in2.exponent), float_in2.mantissa, $signed(float_in3.exponent), float_in3.mantissa);
-        $display("\n ---- PREDICTED VALUES ----\ncalc_float: %f\n\tcalc_float.exp: %d\n\tcalc_float.man: %d \n\n", $bitstoshortreal(calc_float), calc_float.exponent, calc_float.mantissa);
-    
-        do begin
-            @(posedge clk);
-        end while (!ready_out);
-        $display("\n ---- OUTPUT VALUES ----\nfloat_out: %f\n\tfloat_out.exp: %d\n\tfloat_out.man: %d\n\n", $bitstoshortreal(float_out), float_out.exponent, float_out.mantissa);
-
-    end
-    final $display("\n\n\t *** End of Tests *** \n");
-endmodule: top_exp
-
-
+// fpu_fma.sv
 // IEEE-754 floating point Fused Multiply Accumulate
+
+import global_defs::*;
+import mpu_data_types::*;
+
 module fma
 (
     input           clk, rst, start_in,
@@ -127,7 +15,7 @@ module fma
 
     bit error_in;
     internal_float_sp a, b, c, y;         // a * b + c = y
-    state_t state=IDLE, next_state;
+    fma_state_t state, next_state;
 
     // Check for input errors (denormalized numbers, +infinity, -infinity, NaN)
     assign error_in = ((float_in && !float_in.exponent) || float_in.exponent == '1) ? TRUE : FALSE;
@@ -135,7 +23,7 @@ module fma
     // State machine driver
     always_ff @(posedge clk) begin
         state <= rst ? IDLE : next_state;
-        $strobe(($time/CLOCK_PERIOD), " clock cycles \t%s", state);
+        $strobe(($time/10), " clock cycles \t%s  start: %b  error_in: %b  rst: %b", state, start_in, error_in, rst);
     end
 
     // Next state logic
@@ -349,23 +237,3 @@ module fma
     end
 
 endmodule : fma
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

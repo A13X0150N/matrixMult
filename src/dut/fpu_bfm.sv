@@ -9,78 +9,59 @@
 // and multiplication. Operations are sent using the send_op task.
 
 import global_defs::*;
+import mpu_data_types::*;
 
-interface fpu_bfm;
-    import fpu_pkg::*;
+interface fpu_bfm(input clk, rst);
+// pragma attribute fpu_bfm partition_interface_xif
 
-    bit clk=0, rst=0;
-    int input_a='0, input_b='0, output_z;
-    bit input_stb=0, output_stb;
-    bit input_ack, output_ack=0;
+    bit start;
+    bit error;
+    bit ready;    
+    float_sp float_in;
+    float_sp float_out;
 
+    // Wait for reset task.
+    task wait_for_reset(); // pragma tbx xtf
+        @(negedge rst);
+        //$display("rst: %b", rst);
+        start <= FALSE;
+        float_in <= '0;
+    endtask
 
-    initial begin : clock_generator
-        clk = 0;
-        forever #(CLOCK_PERIOD/2) clk = ~clk;
-    end : clock_generator
+    // Send an operation into the FPU
+    task send_op(input fpu_data_sp req, output fpu_data_sp rsp); // pragma tbx xtf
+        @(posedge clk); // For a task to be synthesizable for veloce, it must be a clocked task
+        case(req.op)
 
-
-    task reset_fpu;
-        rst = 0;
-        repeat (10) @(posedge clk);
-        rst = 1;
-        repeat (10) @(posedge clk);
-        rst = 0;
-        repeat (10) @(posedge clk);
-    endtask : reset_fpu
-
-
-    task send_op(input fpu_operation_t op, input int in1, input int in2, output int result);
-        unique case(op)
-            NOP: begin
-                $display("FPU NOP");
+            FPU_NOP: begin
                 @(posedge clk);
             end
-            
-            ADD: begin 
-                // Load inputs
+
+            FPU_FMA: begin
                 @(posedge clk);
-                input_a = in1;
-                input_b = in2;
-                input_stb = 1;
-                @(input_ack);
+                start <= TRUE;
+                float_in <= req.a;
                 @(posedge clk);
-                input_stb = 0;
-                
-                // Wait for result
-                @(output_stb);
-                result = output_z;
-                output_ack = 1;
+                start <= FALSE;
+                float_in <= req.b;
                 @(posedge clk);
-                output_ack = 0;
-                $display(($time/CLOCK_PERIOD), " clock cycles\nFPU ADD result:\t %f + %f = %f\n", $bitstoshortreal(in1), $bitstoshortreal(in2), $bitstoshortreal(result));
+                float_in <= req.c;
+                do begin
+                    @(posedge clk);
+                end while (!ready);
+                rsp.y <= float_out;
+                @(posedge clk);
             end
 
-            MULT: begin
-                // Load inputs
+            FPU_MULTIPLY: begin
                 @(posedge clk);
-                input_a = in1;
-                input_b = in2;
-                input_stb = 1;
-                @(input_ack);
+            end
+
+            FPU_ADD: begin
                 @(posedge clk);
-                input_stb = 0;
-                
-                // Wait for result
-                @(output_stb);
-                result = output_z;
-                output_ack = 1;
-                @(posedge clk);
-                output_ack = 0;
-                $display(($time/CLOCK_PERIOD), " clock cycles\nFPU MULTIPLY result:\t %f * %f = %f\n", $bitstoshortreal(in1), $bitstoshortreal(in2), $bitstoshortreal(result));
             end
 
         endcase
-    endtask : send_op
+    endtask
 
 endinterface : fpu_bfm
