@@ -25,6 +25,12 @@ interface mpu_bfm(input clk, rst);
     bit load_ready;       // Load ready signal
     bit store_ready;      // Store ready signal
 
+    // Input/Output matrix to execution stage
+    bit [MATRIX_REG_BITS:0] reg_exec_addr_in;
+    float_sp reg_exec_element_in;
+    bit [MATRIX_REG_BITS:0] reg_exec_addr_out;
+    float_sp reg_exec_element_out;
+
     // Input/Output matrix from file or memory
     float_sp mem_load_element;                // Incoming float, matrix element
     bit [MBITS:0] mem_m_load_size;            // m-dimension of input matrix
@@ -52,7 +58,7 @@ interface mpu_bfm(input clk, rst);
     // Interface metasignal
     bit [$clog2(M*N)-1:0] idx='0;    // Vectorized matrix index
 
-    // Wait for reset task.
+    // Wait for reset task
     task wait_for_reset(); // pragma tbx xtf
         @(negedge rst);
         load_req <= FALSE;
@@ -74,7 +80,7 @@ interface mpu_bfm(input clk, rst);
                 idx <= '0;
                 mem_m_load_size <= req.m_in;
                 mem_n_load_size <= req.n_in;
-                mem_load_addr <= req.matrix_addr;
+                mem_load_addr <= req.matrix_addr_a;
                 mem_load_element <= req.matrix_in[idx];
                 load_req <= TRUE;
                 while (!mem_load_ack) begin
@@ -89,8 +95,8 @@ interface mpu_bfm(input clk, rst);
             end
 
             MPU_STORE: begin
-                mem_store_addr <= req.matrix_addr;
                 idx <= '0;
+                mem_store_addr <= req.matrix_addr_a;
                 store_req <= TRUE;
                 while (!mem_store_en) begin
                     @(posedge clk);
@@ -102,6 +108,10 @@ interface mpu_bfm(input clk, rst);
                 end while (mem_store_en);
                 @(posedge clk);
                 store_req <= FALSE;
+            end
+
+            MPU_ADD: begin
+                
             end
 
         endcase

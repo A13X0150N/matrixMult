@@ -14,8 +14,8 @@ package global_defs;
     //////////////////////////// * * *  ADJUSTABLE TOP-LEVEL PARAMETERS  * * * ////////////////////////////
 
     parameter FP = 32;                      // Floating point bit selection
-    parameter M = 5;                        // Maximum register row size
-    parameter N = 5;                        // Maximum register column size
+    parameter M = 3;                        // Maximum register row size
+    parameter N = 3;                        // Maximum register column size
     parameter MATRIX_REGISTERS = 8;         // Size of matrix register file
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -73,7 +73,8 @@ package mpu_data_types;
     typedef enum bit [1:0] {
         MPU_NOP,
         MPU_LOAD,
-        MPU_STORE
+        MPU_STORE,
+        MPU_ADD
     } mpu_instruction_e;
 
     // FPU instructions
@@ -131,7 +132,9 @@ package mpu_data_types;
         float_sp [0:8] matrix_in;
         bit [MBITS:0] m_in;
         bit [NBITS:0] n_in;
-        bit [MATRIX_REG_BITS:0] matrix_addr;
+        bit [MATRIX_REG_BITS:0] matrix_addr_a;
+        bit [MATRIX_REG_BITS:0] matrix_addr_b;
+        bit [MATRIX_REG_BITS:0] matrix_addr_c;
       
         // Response fields
         float_sp [0:8] matrix_out;
@@ -143,7 +146,6 @@ package mpu_data_types;
         fpu_instruction_e op;
         float_sp a;
         float_sp b;
-        float_sp c;
 
         // Response fields
         float_sp y;
@@ -163,7 +165,7 @@ package testbench_utilities;
 
     // Clock Controller
     parameter CLOCK_PERIOD = 10;
-    parameter CYCLES = 15;
+    parameter CYCLES = 20;
 
     parameter M_MEM = 3;                        // Testbench input matrix rows     MUST BE LESS THAN M (remove?)
     parameter N_MEM = 3;                        // Testbench input matrix columns  MUST BE LESS THAN N (remove?)

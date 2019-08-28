@@ -43,6 +43,12 @@ typedef struct packed {
 } internal_float_sp;
 
 
+class gen_float;
+    bit sign;
+    bit [EXPBITS-1:0] exponent;
+    bit [MANBITS-1:0] mantissa;
+endclass : gen_float
+
 // Testbench
 module top_exp;
     initial $display("\n\n\t *** Starting Tests *** \n");
@@ -66,7 +72,30 @@ module top_exp;
         @(posedge clk);
     endtask : reset
 
-    // Test variables
+
+    // Main Test Sequence
+    initial begin
+        reset();
+
+
+
+
+
+
+    end
+
+
+
+
+
+
+
+
+
+
+
+
+    /*// Test variables
     float_sp float_in, float_in1, float_in2, float_in3, calc_float, float_out;
     bit error_out, start_in, ready_out;
 
@@ -109,12 +138,13 @@ module top_exp;
             @(posedge clk);
         end while (!ready_out);
         $display("\n ---- OUTPUT VALUES ----\nfloat_out: %f\n\tfloat_out.exp: %d\n\tfloat_out.man: %d\n\n", $bitstoshortreal(float_out), float_out.exponent, float_out.mantissa);
+    end*/
 
-    end
     final $display("\n\n\t *** End of Tests *** \n");
 endmodule: top_exp
 
 
+/*
 // IEEE-754 floating point Fused Multiply Accumulate
 module fma
 (
@@ -349,23 +379,6 @@ module fma
     end
 
 endmodule : fma
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+*/
 
 

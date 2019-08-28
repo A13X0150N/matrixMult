@@ -14,18 +14,40 @@ import mpu_data_types::*;
 interface fpu_bfm(input clk, rst);
 // pragma attribute fpu_bfm partition_interface_xif
 
-    bit start;
-    bit error;
-    bit ready;    
-    float_sp float_in;
-    float_sp float_out;
+    // Control signals
+    bit [NBITS:0] size;
 
-    // Wait for reset task.
+    // Left connections
+    float_sp float_left_in;      // Left float input
+    bit      ready_left_in;      // Left input ready
+    bit      ack_left_out;       // Signal ready to receive next left input
+
+    // Up connections
+    float_sp float_up_in;        // Up float input
+    bit      ready_up_in;        // Signal up input ready
+    bit      ack_up_out;         // Signal ready to receive next up input
+
+    // Right connections
+    float_sp float_right_out;    // Right float output
+    bit      ack_right_out;      // Signal right output ready
+    bit      ready_right_in;     // Signal ready to send next right input
+
+    // Down connections
+    float_sp float_down_out;     // Down float output
+    bit      ack_down_out;       // Signal down output ready
+    bit      ready_down_in;      // Signal ready to send next down input
+
+    // Answer output
+    float_sp float_answer_out;   // Answer float output
+    bit      ready_answer_out;   // Signal answer output ready
+    bit      error_out;           // Signal error detection output
+
+    // Wait for reset task
     task wait_for_reset(); // pragma tbx xtf
         @(negedge rst);
-        //$display("rst: %b", rst);
-        start <= FALSE;
-        float_in <= '0;
+        $display("rst: %b", rst);
+        //start <= FALSE;
+        //float_in <= '0;
     endtask
 
     // Send an operation into the FPU
@@ -44,12 +66,11 @@ interface fpu_bfm(input clk, rst);
                 @(posedge clk);
                 start <= FALSE;
                 float_in <= req.b;
-                @(posedge clk);
-                float_in <= req.c;
+
                 do begin
                     @(posedge clk);
-                end while (!ready);
-                rsp.y <= float_out;
+                end while (!ready_answer_out);
+                rsp.y <= error_out ? '1 : float_answer_out;
                 @(posedge clk);
             end
 
