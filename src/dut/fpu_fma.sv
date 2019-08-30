@@ -58,7 +58,7 @@ module fma
     float_sp float_1;                   //  1)   product = float_0 * float_1
     internal_float_sp accum;            //  2)   accum = accum + product
     internal_float_sp product;
-    fma_state_t state, next_state;
+    fma_state_e state, next_state;
 
     // Broadcast busy state to neighbors
     assign busy_out = busy;

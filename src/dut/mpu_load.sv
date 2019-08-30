@@ -72,7 +72,7 @@ module mpu_load
     end : state_machine_driver
 
     // Register (i,j) incremental pointer counter
-    always_ff @(posedge clk) begin : matix_indexing
+    always_ff @(posedge clk) begin : matrix_indexing
         if (rst) begin
             row_ptr <= '0;
             col_ptr <= '0;
@@ -103,7 +103,7 @@ module mpu_load
                 end
             endcase       
         end
-    end : matix_indexing
+    end : matrix_indexing
 
     // Next state logic
     always_comb begin : next_state_logic

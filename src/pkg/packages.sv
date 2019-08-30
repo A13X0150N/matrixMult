@@ -99,6 +99,19 @@ package mpu_data_types;
         STORE_MATRIX
     } store_state_e;
 
+    // Dispatcher states
+    typedef enum bit [1:0] {
+        DISP_IDLE,
+        DISP_MATRIX,
+        DISP_WAIT
+    } disp_state_e;
+
+    // Collector states
+    typedef enum bit {
+        COLLECTOR_IDLE,
+        COLLECTOR_WRITE
+    } collector_state_e
+
     // FMA states
     typedef enum bit [2:0] {
         IDLE,
@@ -109,7 +122,7 @@ package mpu_data_types;
         NORMALIZE,
         OUTPUT,
         ERROR
-    } fma_state_t;
+    } fma_state_e;
 
     // Floating point data type
     typedef struct packed {

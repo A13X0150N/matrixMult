@@ -22,18 +22,17 @@ module mpu_top;
 
 
     // Register file
-    mpu_register_file matrix_register_file(
+    mpu_register_file mpu_register_file(
         // Control Signals
         .clk                        (clk),
         .rst                        (rst),
-        .reg_load_en_in             (mpu_bfm.reg_load_en),
-        .reg_store_en_in            (mpu_bfm.reg_store_en),
-        .load_ready_out             (mpu_bfm.load_ready),
-        .store_ready_out            (mpu_bfm.store_ready),
-        .collector_ready_out        (),
-        .disp_ready_out             (),   
+        .reg_load_req_in            (mpu_bfm.reg_load_en),
+        .reg_store_req_in           (mpu_bfm.reg_store_en),
+        .reg_disp_req_in            (),
+        .reg_collector_req_in       (),
 
         // To MPU Load
+        .load_ready_out             (mpu_bfm.load_ready),
         .reg_load_addr_in           (mpu_bfm.reg_load_addr),
         .reg_load_element_in        (mpu_bfm.reg_load_element),         
         .reg_i_load_loc_in          (mpu_bfm.reg_i_load_loc),
@@ -42,6 +41,7 @@ module mpu_top;
         .reg_n_load_size_in         (mpu_bfm.reg_n_load_size),
 
         // To MPU Store
+        .store_ready_out            (mpu_bfm.store_ready),
         .reg_store_addr_in          (mpu_bfm.reg_store_addr),
         .reg_i_store_loc_in         (mpu_bfm.reg_i_store_loc),
         .reg_j_store_loc_in         (mpu_bfm.reg_j_store_loc),
@@ -50,6 +50,7 @@ module mpu_top;
         .reg_store_element_out      (mpu_bfm.reg_store_element),
 
         // To Dispatcher
+        .disp_ready_out             (),
         .reg_disp_addr_0_in         (),
         .reg_disp_addr_1_in         (), 
         .reg_disp_0_i_in            (),
@@ -60,6 +61,7 @@ module mpu_top;
         .reg_disp_element_1_out     (),
 
         // To Collector
+        .collector_ready_out        (),
         .reg_collector_addr_in      (),
         .reg_collector_i_in         (),
         .reg_collector_j_in         (),
@@ -122,18 +124,14 @@ module mpu_top;
 
 
     // Dipatch matrix elements into exectuion cluster
-    dipatcher dispatcher(
+    mpu_dispatcher mpu_dispatcher(
         // Control Signals
         .clk                        (clk),
         .rst                        (rst),
         .start_in                   (),
-        .finished_out               (),
+        .ack_out                    (),
 
         // To matrix register file
-        .disp_ready_in              (),
-        .reg_disp_en_out            (),
-        .reg_disp_addr_0_out        (),
-        .reg_disp_addr_1_out        (),
         .reg_disp_0_i_out           (),
         .reg_disp_0_j_out           (),
         .reg_disp_1_i_out           (),
@@ -182,12 +180,11 @@ module mpu_top;
 
 
     // Collect answers from execution cluster and return to memory
-    collector collector(
+    mpu_collector mpu_collector(
         .clk                        (clk),
         .rst                        (rst),
 
         // To matrix register file
-        .reg_collector_addr_out     (),
         .reg_collector_i_out        (),
         .reg_collector_j_out        (),
         .reg_collector_element_out  (),
@@ -215,11 +212,24 @@ module mpu_top;
     );
 
 
-    // Controller
+    // MPU Controller
     mpu_controller mpu_controller(
         //Control signals
-        .clk    (clk),
-        .rst    (rst)
+        .start_mult_in              (),
+        .src_addr0_in               (),
+        .src_addr1_in               (),
+        .dest_addr_in               (),
+       
+        // To Dispatcher
+        .disp_start_out             (),
+
+        // To Matrix Register File
+        .reg_collector_ready_in     (),
+        .reg_disp_ready_in          (),
+        .reg_collector_req_out      (), 
+        .reg_disp_req_out           (),
+        .reg_src_addr_0_out         (),
+        .reg_src_addr_1_out         (),
     );
 
 
