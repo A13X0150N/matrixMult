@@ -31,13 +31,13 @@ module fma
     // Busy Signals
     input  bit      float_0_busy_in,    // float 0 neighbor busy state
     input  bit      float_1_busy_in,    // float 1 neighbor busy state
-    output          busy_out,           // Output busy state to neighbors
+    output bit      busy_out,           // Output busy state to neighbors
 
     // Data request signals
-    input           float_0_req_in,     // float 0 input request
-    output          float_0_req_out,    // float 0 output request
-    input           float_1_req_in,     // float 1 input request
-    output          float_1_req_out,    // float 1 output request
+    input  bit      float_0_req_in,     // float 0 input request
+    output bit      float_0_req_out,    // float 0 output request
+    input  bit      float_1_req_in,     // float 1 input request
+    output bit      float_1_req_out,    // float 1 output request
 
     // Float I/O
     input  float_sp float_0_in,         // float 0 input
@@ -70,7 +70,6 @@ module fma
     // State machine driver
     always_ff @(posedge clk) begin
         state <= rst ? IDLE : next_state;
-        //$strobe(($time/10), " clock cycles \t%s  start: %b  error_in: %b  rst: %b", state, start_in, error_in, rst);
     end
 
     // Next state logic
@@ -96,7 +95,7 @@ module fma
                 if (error_in) begin
                     next_state <= ERROR;
                 end
-                else if (float_0_req_in | float_1_req_in) begin // no work >:-(
+                else if (float_0_req_in | float_1_req_in) begin
                     next_state <= MULTIPLY;
                 end
                 else begin
@@ -369,7 +368,7 @@ module fma
                         float_answer_out <= '1;
                         ready_answer_out <= FALSE;
                     end
-                    else if (count == N) begin
+                    else if (count == N-1) begin
                         count <= '0;
                         error_out <= FALSE;
                         float_answer_out.sign <= accum.sign;

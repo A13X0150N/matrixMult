@@ -15,26 +15,26 @@ import mpu_data_types::*;
 module mpu_store
 (
     // Control signals
-    input clk,          // Clock
-    input rst,          // Synchronous reset active high
-    input store_req_in, // Signal input data
+    input clk,                                              // Clock
+    input rst,                                              // Synchronous reset active high
+    input store_req_in,                                     // Signal input data
 
     // To register file
-    input  bit store_ready_in,                             // Matrix store ready signal
-    input  float_sp reg_store_element_in,                  // Incoming float, matrix element
-    input  bit [MBITS:0] reg_m_store_size_in,              // Register matrix M total rows
-    input  bit [NBITS:0] reg_n_store_size_in,              // Register matrix N total columns
-    output bit reg_store_en_out,                           // Store enable signal
-    output bit [MBITS:0] reg_i_store_loc_out,              // Matrix row location
-    output bit [NBITS:0] reg_j_store_loc_out,              // Matrix column location
-    output bit [MATRIX_REG_BITS:0] reg_store_addr_out,     // Matrix address store location
+    input  bit store_ready_in,                              // Matrix store ready signal
+    input  float_sp reg_store_element_in,                   // Incoming float, matrix element
+    input  bit [MBITS:0] reg_m_store_size_in,               // Register matrix M total rows
+    input  bit [NBITS:0] reg_n_store_size_in,               // Register matrix N total columns
+    output bit reg_store_req_out,                           // Store request signal
+    output bit [MBITS:0] reg_i_store_loc_out,               // Matrix row location
+    output bit [NBITS:0] reg_j_store_loc_out,               // Matrix column location
+    output bit [MATRIX_REG_BITS:0] reg_store_addr_out,      // Matrix address store location
 
     // To memory
-    input  bit [MATRIX_REG_BITS:0] mem_store_addr_in,      // Matrix address store location
-    output bit mem_store_en_out,                           // Signal for store enable
-    output bit [MBITS:0] mem_m_store_size_out,             // M total rows
-    output bit [NBITS:0] mem_n_store_size_out,             // N total columns
-    output float_sp mem_store_element_out                  // Matrix element output
+    input  bit [MATRIX_REG_BITS:0] mem_store_addr_in,       // Matrix address store location
+    output bit mem_store_en_out,                            // Signal for store enable
+    output bit [MBITS:0] mem_m_store_size_out,              // M total rows
+    output bit [NBITS:0] mem_n_store_size_out,              // N total columns
+    output float_sp mem_store_element_out                   // Matrix element output
 );
 
     bit [MBITS:0] row_ptr;
@@ -137,26 +137,26 @@ module mpu_store
     // Matrix register enable output
     always_comb begin : matrix_store_output
         if (rst) begin
-            reg_store_en_out <= FALSE;
+            reg_store_req_out <= FALSE;
             mem_store_en_out <= FALSE;
         end
         else begin
             unique case (state)
                 STORE_IDLE: begin
-                    reg_store_en_out <= FALSE;
+                    reg_store_req_out <= FALSE;
                     mem_store_en_out <= FALSE;
                 end
                 STORE_REQUEST: begin
-                    reg_store_en_out <= FALSE;
+                    reg_store_req_out <= FALSE;
                     mem_store_en_out <= FALSE;
                 end
                 STORE_MATRIX: begin
                     if (!store_finished) begin
-                        reg_store_en_out <= TRUE;
+                        reg_store_req_out <= TRUE;
                         mem_store_en_out <= TRUE;
                     end
                     else begin
-                        reg_store_en_out <= FALSE;
+                        reg_store_req_out <= FALSE;
                         mem_store_en_out <= FALSE;
                     end
                 end

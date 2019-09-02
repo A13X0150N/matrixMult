@@ -1,8 +1,13 @@
 // mpu_collector.sv
 
+import global_defs::*;
+import mpu_data_types::*;
+
 module mpu_collector (
 	input  clk,                                    // Clock
     input  rst,                                    // Synchronous reset active high
+    output bit collector_finished,                 // Collector finished
+    output bit collector_active_write_out,         // Collector is writing back to register file
 
     // To matrix register file
     output bit [MBITS:0] reg_collector_i_out,      // Collector input row location
@@ -16,20 +21,41 @@ module mpu_collector (
 
     input  bit      ready_0_0_in, ready_0_1_in, ready_0_2_in,
                     ready_1_0_in, ready_1_1_in, ready_1_2_in,
-                    ready_2_0_in, ready_2_1_in, ready_2_2_in
+                    ready_2_0_in, ready_2_1_in, ready_2_2_in,
+
+    input  bit error_detected_in
 );
 
 collector_state_e state, next_state;
 bit write_to_memory;
 bit write_finished;
+bit collector_active_write_out_delay;
 bit [MBITS:0] dest_i;
+bit [MBITS:0] dest_i_delay;
 bit [NBITS:0] dest_j;
-float_sp buffer [M][N];
+bit [NBITS:0] dest_j_delay;
+float_sp buffer [M][N]; // pragma attribute buffer ram_block 1
 bit ready [M*N];
 
-assign write_finished = (dest_i == M-1) & (dest_j == N-1);
-assign reg_collector_i_out = dest_i;
-assign reg_collector_j_out = dest_j;
+// Write delayed signals
+always_ff @(posedge clk) begin
+    if (rst) begin
+        dest_i_delay <= '0;
+        dest_j_delay <= '0;
+        collector_active_write_out_delay <= '0;
+    end
+    else begin
+        dest_i_delay <= dest_i;
+        dest_j_delay <= dest_j;
+        collector_active_write_out_delay <= collector_active_write_out;
+    end
+end
+
+assign write_finished = (dest_i_delay == M-1) & (dest_j_delay == N-1);
+assign collector_finished = write_finished;
+assign collector_active_write_out = (state == COLLECTOR_WRITE) | collector_active_write_out_delay;
+assign reg_collector_i_out = dest_i_delay;
+assign reg_collector_j_out = dest_j_delay;
 assign ready[0] = ready_0_0_in;
 assign ready[1] = ready_0_1_in;
 assign ready[2] = ready_0_2_in;
@@ -44,7 +70,15 @@ assign ready[8] = ready_2_2_in;
 always_ff @(posedge clk) begin
     if (rst) begin
         write_to_memory <= FALSE;
-        foreach(buffer[i]) buffer[i] = '0;
+        buffer[0][0] <= '0;
+        buffer[0][1] <= '0;
+        buffer[0][2] <= '0;
+        buffer[1][0] <= '0;
+        buffer[1][1] <= '0;
+        buffer[1][2] <= '0;
+        buffer[2][0] <= '0;
+        buffer[2][1] <= '0;
+        buffer[2][2] <= '0;
     end
     else begin
         write_to_memory <= FALSE;
@@ -55,7 +89,7 @@ always_ff @(posedge clk) begin
         // The center element is always last, so time to output
         if (ready_1_1_in) begin 
             buffer[1][1] <= result_1_1_in;
-            write_to_memory = TRUE;
+            write_to_memory <= TRUE;
         end
         if (ready_1_2_in) buffer[1][2] <= result_1_2_in;
         if (ready_2_0_in) buffer[2][0] <= result_2_0_in;
@@ -66,7 +100,7 @@ end
 
 // State machine driver
 always_ff @(posedge clk) begin
-    state <= rst ? COLLECTOR_IDLE : COLLECTOR_WRITE;
+    state <= rst ? COLLECTOR_IDLE : next_state;
 end
 
 // Next state logic

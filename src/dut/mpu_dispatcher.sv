@@ -1,12 +1,16 @@
 // mpu_dispatcher.sv
 
+import global_defs::*;
+import mpu_data_types::*;
+
 module mpu_dispatcher 
 (
     // Control signals
     input  clk,                                             // Clock
     input  rst,                                             // Synchronous reset active high
-    input  bit start_in,                                    // Start distributing data signal
-    output bit ack_out,                                     // Signal data distribution started
+    input  bit disp_start_in,                               // Start distributing data signal
+    output bit disp_ack_out,                                // Signal data distribution started
+    output bit disp_finished_out,                           // Signal finished dispatching
 
     // To matrix register file
     output bit [MBITS:0] reg_disp_0_i_out,                  // Dispatcher output row location
@@ -17,16 +21,16 @@ module mpu_dispatcher
     input  float_sp reg_disp_element_1_in,                  // Dispatcher element 1 input
 
     // To FMA cluster
-    input   busy_0_0_in, busy_0_1_in, busy_0_2_in, 
-            busy_1_0_in,              busy_1_2_in,
-            busy_2_0_in, busy_2_1_in, busy_2_2_in,
+    input  bit  busy_0_0_in, busy_0_1_in, busy_0_2_in, 
+                busy_1_0_in,              busy_1_2_in,
+                busy_2_0_in, busy_2_1_in, busy_2_2_in,
 
-    output  float_0_req_0_0_out, float_0_req_0_2_out,
-            float_0_req_1_0_out, float_0_req_1_2_out,
-            float_0_req_2_0_out, float_0_req_2_2_out,
+    output bit  float_0_req_0_0_out, float_0_req_0_2_out,
+                float_0_req_1_0_out, float_0_req_1_2_out,
+                float_0_req_2_0_out, float_0_req_2_2_out,
 
-    output  float_1_req_0_0_out, float_1_req_0_1_out, float_1_req_0_2_out,
-            float_1_req_2_0_out, float_1_req_2_1_out, float_1_req_2_2_out,
+    output bit  float_1_req_0_0_out, float_1_req_0_1_out, float_1_req_0_2_out,
+                float_1_req_2_0_out, float_1_req_2_1_out, float_1_req_2_2_out,
 
     output float_sp float_0_data_0_0_out, float_0_data_0_2_out,
                     float_0_data_1_0_out, float_0_data_1_2_out,
@@ -37,7 +41,6 @@ module mpu_dispatcher
 );
 
     disp_state_e state, next_state;
-    bit [NBITS:0] count;
     bit [MBITS:0] float_0_i;
     bit [NBITS:0] float_0_j;
     bit [MBITS:0] float_1_i;
@@ -98,14 +101,15 @@ module mpu_dispatcher
     // Determine if the FMA cluster can receive new input
     assign cluster_free = ~(busy_0_0_in | busy_0_1_in | busy_0_2_in | busy_1_0_in | busy_1_2_in | busy_2_0_in | busy_2_1_in | busy_2_2_in);
     
-    // Determine if it is time to wait fo rthe next vector to load
+    // Determine if it is time to wait for the next vector to load
     assign time_to_wait = (float_0_i == M-1);
 
     // Acknowledge that the dispatcher has began to work on a task
-    assign ack_out = (state != DISP_IDLE);
+    assign disp_ack_out = (state != DISP_IDLE);
 
     // Track when the float dispatching is complete 
-    assign finished = (float_0_i == M-1) & (float_0_j == N-1);
+    assign finished = (float_0_i == M-1) & !float_0_j;
+    assign disp_finished_out = finished;
 
     // Matrix indexing
     always_ff @(posedge clk) begin
@@ -162,11 +166,11 @@ module mpu_dispatcher
     always_comb begin
         unique case (state)
             DISP_IDLE: begin
-                if (start_in & cluster_free) begin
+                if (disp_start_in & cluster_free) begin
                     next_state <= DISP_MATRIX;
                 end
                 else begin
-                    next_state <= DISP_IDLE
+                    next_state <= DISP_IDLE;
                 end
             end
             DISP_MATRIX: begin
@@ -177,15 +181,18 @@ module mpu_dispatcher
                     next_state <= DISP_WAIT;
                 end
                 else begin
-                    next_state <= DISP_MATRIX
+                    next_state <= DISP_MATRIX;
                 end
             end
             DISP_WAIT: begin
-                if (cluster_free) begin
+                if (finished) begin
+                    next_state <= DISP_IDLE;
+                end
+                else if (cluster_free) begin
                     next_state <= DISP_MATRIX;
                 end
                 else begin
-                    next_state <= DISP_WAIT
+                    next_state <= DISP_WAIT;
                 end
             end
         endcase
@@ -206,7 +213,6 @@ module mpu_dispatcher
             float_1_data_0 <= '0;
             float_1_data_1 <= '0;
             float_1_data_2 <= '0;
-            count <= '0;
         end
         else begin
             unique case (state)
@@ -223,11 +229,10 @@ module mpu_dispatcher
                     float_1_data_0 <= '0;
                     float_1_data_1 <= '0;
                     float_1_data_2 <= '0;
-                    count <= '0;
                 end
                 DISP_MATRIX: begin
-                    if (count == 0) begin
-                        float_0_req_0 <= TRUE
+                    if (float_0_i == 0) begin
+                        float_0_req_0 <= TRUE;
                         float_0_req_1 <= FALSE;
                         float_0_req_2 <= FALSE;
                         float_1_req_0 <= TRUE;
@@ -240,7 +245,7 @@ module mpu_dispatcher
                         float_1_data_1 <= '0;
                         float_1_data_2 <= '0;
                     end
-                    else if (count == 1) begin
+                    else if (float_0_i == 1) begin
                         float_0_req_0 <= FALSE;
                         float_0_req_1 <= TRUE;
                         float_0_req_2 <= FALSE;
@@ -254,7 +259,7 @@ module mpu_dispatcher
                         float_1_data_1 <= reg_disp_element_1_in;
                         float_1_data_2 <= '0;
                     end
-                    else if (count == 2) begin
+                    else if (float_0_i == 2) begin
                         float_0_req_0 <= FALSE;
                         float_0_req_1 <= FALSE;
                         float_0_req_2 <= TRUE;
@@ -282,7 +287,6 @@ module mpu_dispatcher
                         float_1_data_1 <= '0;
                         float_1_data_2 <= '0;
                     end
-                    count <= count + 1;
                 end
                 DISP_WAIT: begin
                     float_0_req_0 <= FALSE;
@@ -297,7 +301,6 @@ module mpu_dispatcher
                     float_1_data_0 <= '0;
                     float_1_data_1 <= '0;
                     float_1_data_2 <= '0;
-                    count <= '0;
                 end
             endcase
         end

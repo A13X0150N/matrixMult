@@ -29,7 +29,7 @@ module mpu_load
 
     // Output to register file
     input  bit load_ready_in,                             // Matrix load ready signal
-    output bit reg_load_en_out,                           // Matrix load request
+    output bit reg_load_req_out,                           // Matrix load request
     output bit [MATRIX_REG_BITS:0] reg_load_addr_out,     // Matrix address load location 
     output float_sp reg_load_element_out,                 // Matrix data
     output bit [MBITS:0] reg_i_load_loc_out,              // Matrix row location
@@ -149,32 +149,32 @@ module mpu_load
     always_comb begin : matrix_load_output
         if (rst) begin
             mem_load_ack_out <= FALSE;
-            reg_load_en_out  <= FALSE;      
+            reg_load_req_out  <= FALSE;      
         end
         else begin
             unique case (state)
                 LOAD_IDLE: begin
                     mem_load_ack_out <= FALSE;
-                    reg_load_en_out  <= FALSE;     
+                    reg_load_req_out  <= FALSE;     
                 end
                 LOAD_REQUEST: begin
                     if (load_ready_in) begin
                         mem_load_ack_out <= TRUE;
-                        reg_load_en_out  <= FALSE;
+                        reg_load_req_out  <= FALSE;
                     end
                     else begin
                         mem_load_ack_out <= FALSE;
-                        reg_load_en_out  <= FALSE;
+                        reg_load_req_out  <= FALSE;
                     end
                 end
                 LOAD_MATRIX: begin
                     if (!load_finished) begin
                         mem_load_ack_out <= TRUE;
-                        reg_load_en_out  <= TRUE;
+                        reg_load_req_out  <= TRUE;
                     end
                     else begin
                         mem_load_ack_out <= FALSE;
-                        reg_load_en_out  <= TRUE;
+                        reg_load_req_out  <= TRUE;
                     end
                 end
             endcase

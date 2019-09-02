@@ -35,33 +35,33 @@ module fma_cluster (
     input           clk,        // Clock
     input           rst,        // Synchronous reset active high
 
-    output          busy_0_0_out, busy_0_1_out, busy_0_2_out, 
+    output bit      busy_0_0_out, busy_0_1_out, busy_0_2_out, 
                     busy_1_0_out,               busy_1_2_out,
                     busy_2_0_out, busy_2_1_out, busy_2_2_out,
 
-    input           float_0_req_0_0_in, float_0_req_0_2_in,
+    input  bit      float_0_req_0_0_in, float_0_req_0_2_in,
                     float_0_req_1_0_in, float_0_req_1_2_in,
                     float_0_req_2_0_in, float_0_req_2_2_in,
 
-    input           float_1_req_0_0_in, float_1_req_0_1_in, float_1_req_0_2_in,
+    input  bit      float_1_req_0_0_in, float_1_req_0_1_in, float_1_req_0_2_in,
                     float_1_req_2_0_in, float_1_req_2_1_in, float_1_req_2_2_in,
 
-    input float_sp  float_0_data_0_0_in, float_0_data_0_2_in,
+    input  float_sp float_0_data_0_0_in, float_0_data_0_2_in,
                     float_0_data_1_0_in, float_0_data_1_2_in,
                     float_0_data_2_0_in, float_0_data_2_2_in,
 
-    input float_sp  float_1_data_0_0_in, float_1_data_0_1_in, float_1_data_0_2_in,
+    input  float_sp float_1_data_0_0_in, float_1_data_0_1_in, float_1_data_0_2_in,
                     float_1_data_2_0_in, float_1_data_2_1_in, float_1_data_2_2_in,
 
     output float_sp result_0_0_out, result_0_1_out, result_0_2_out,
                     result_1_0_out, result_1_1_out, result_1_2_out,
                     result_2_0_out, result_2_1_out, result_2_2_out, 
 
-    output          ready_0_0_out, ready_0_1_out, ready_0_2_out,
+    output bit      ready_0_0_out, ready_0_1_out, ready_0_2_out,
                     ready_1_0_out, ready_1_1_out, ready_1_2_out,
                     ready_2_0_out, ready_2_1_out, ready_2_2_out,
 
-    output          error_detected
+    output bit      error_detected_out
 );
 
     // Busy signals
@@ -130,9 +130,9 @@ module fma_cluster (
 
     assign float_0_data_0_0 = float_0_data_0_0_in;
     assign float_0_data_0_2 = float_0_data_0_2_in;
-    assign float_0_data_0_0 = float_0_data_0_0_in;
+    assign float_0_data_1_0 = float_0_data_1_0_in;
     assign float_0_data_1_2 = float_0_data_1_2_in;
-    assign float_0_data_0_0 = float_0_data_0_0_in;
+    assign float_0_data_2_0 = float_0_data_2_0_in;
     assign float_0_data_2_2 = float_0_data_2_2_in;
 
     assign float_1_data_0_0 = float_1_data_0_0_in;
@@ -224,7 +224,7 @@ module fma_cluster (
         .float_0_req_in     (float_0_req_0_2),
         .float_0_req_out    (),
         .float_1_req_in     (float_1_req_0_2),
-        .float_1_req_out    (float_1_req_1_1),
+        .float_1_req_out    (float_1_req_1_2),
 
         .float_0_in         (float_0_data_0_2),
         .float_0_out        (),

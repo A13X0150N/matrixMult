@@ -41,7 +41,7 @@ module mpu_register_file
     input  bit [NBITS:0] reg_j_store_loc_in,                // Matrix output column location
     output bit [MBITS:0] reg_m_store_size_out,              // Matrix output total rows
     output bit [NBITS:0] reg_n_store_size_out,              // Matrix output total columns
-    output float_sp reg_store_element_out                   // Matrix output data
+    output float_sp reg_store_element_out,                  // Matrix output data
 
     // To Controller
     output bit reg_disp_ready_out,                          // Dispatcher read ready sync signal
@@ -82,7 +82,7 @@ module mpu_register_file
             size_m <= '0;
             size_n <= '0;
         end
-        else if (reg_load_req_in & load_ready_out) begin //check
+        else if (reg_load_req_in & load_ready_out) begin
             size_m <= reg_m_load_size_in;
             size_n <= reg_n_load_size_in;
             matrix_register_array[reg_load_addr_in][reg_i_load_loc_in][reg_j_load_loc_in] <= reg_load_element_in;
@@ -91,7 +91,7 @@ module mpu_register_file
 
     // Store a vectorized matrix from a register out to memory
     always_ff @(posedge clk) begin : matrix_store
-        if (reg_store_req_in & store_ready_out) begin // check
+        if (reg_store_req_in & store_ready_out) begin
             reg_m_store_size_out <= size_m;
             reg_n_store_size_out <= size_n;
             reg_store_element_out <= matrix_register_array[reg_store_addr_in][reg_i_store_loc_in][reg_j_store_loc_in];    
@@ -100,7 +100,7 @@ module mpu_register_file
 
     // Dispatch a matrix to the execution unit
     always_ff @(posedge clk) begin : matrix_dispatch
-        if (reg_disp_req_in & reg_disp_ready_out) begin // check
+        if (reg_disp_req_in) begin
             reg_disp_element_0_out <= matrix_register_array[reg_disp_addr_0_in][reg_disp_0_i_in][reg_disp_0_j_in];
             reg_disp_element_1_out <= matrix_register_array[reg_disp_addr_1_in][reg_disp_1_i_in][reg_disp_1_j_in];
         end
@@ -108,7 +108,7 @@ module mpu_register_file
 
     // Collect a matrix from the execution unit 
     always_ff @(posedge clk) begin : matrix_collect
-        if (reg_collector_req_in & reg_collector_ready_out) begin // check
+        if (reg_collector_req_in) begin
             matrix_register_array[reg_collector_addr_in][reg_collector_i_in][reg_collector_j_in] <= reg_collector_element_in;
         end
     end : matrix_collect
@@ -146,7 +146,7 @@ module mpu_register_file
             else if (reg_store_req_in) begin
                 currently_reading <= currently_reading | (1 << reg_store_addr_in);
             end
-            else if (disp_en_in) begin
+            else if (reg_disp_req_in) begin
                 currently_reading <= currently_reading | (1 << reg_disp_addr_0_in) | (1 << reg_disp_addr_1_in);
             end
             else begin

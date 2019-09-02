@@ -74,7 +74,7 @@ package mpu_data_types;
         MPU_NOP,
         MPU_LOAD,
         MPU_STORE,
-        MPU_ADD
+        MPU_MULT
     } mpu_instruction_e;
 
     // FPU instructions
@@ -110,7 +110,7 @@ package mpu_data_types;
     typedef enum bit {
         COLLECTOR_IDLE,
         COLLECTOR_WRITE
-    } collector_state_e
+    } collector_state_e;
 
     // FMA states
     typedef enum bit [2:0] {
@@ -145,9 +145,9 @@ package mpu_data_types;
         float_sp [0:8] matrix_in;
         bit [MBITS:0] m_in;
         bit [NBITS:0] n_in;
-        bit [MATRIX_REG_BITS:0] matrix_addr_a;
-        bit [MATRIX_REG_BITS:0] matrix_addr_b;
-        bit [MATRIX_REG_BITS:0] matrix_addr_c;
+        bit [MATRIX_REG_BITS:0] src_addr_0;
+        bit [MATRIX_REG_BITS:0] src_addr_1;
+        bit [MATRIX_REG_BITS:0] dest_addr;
       
         // Response fields
         float_sp [0:8] matrix_out;
@@ -178,7 +178,7 @@ package testbench_utilities;
 
     // Clock Controller
     parameter CLOCK_PERIOD = 10;
-    parameter CYCLES = 20;
+    parameter CYCLES = 500;
 
     parameter M_MEM = 3;                        // Testbench input matrix rows     MUST BE LESS THAN M (remove?)
     parameter N_MEM = 3;                        // Testbench input matrix columns  MUST BE LESS THAN N (remove?)
