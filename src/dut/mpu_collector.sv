@@ -29,6 +29,7 @@ module mpu_collector (
 collector_state_e state, next_state;
 bit write_to_memory;
 bit write_finished;
+bit write_finished_delay;
 bit collector_active_write_out_delay;
 bit [MBITS:0] dest_i;
 bit [MBITS:0] dest_i_delay;
@@ -42,18 +43,20 @@ always_ff @(posedge clk) begin
     if (rst) begin
         dest_i_delay <= '0;
         dest_j_delay <= '0;
+        write_finished_delay <= '0;
         collector_active_write_out_delay <= '0;
     end
     else begin
         dest_i_delay <= dest_i;
         dest_j_delay <= dest_j;
+        write_finished_delay <= write_finished;
         collector_active_write_out_delay <= collector_active_write_out;
     end
 end
 
 assign write_finished = (dest_i_delay == M-1) & (dest_j_delay == N-1);
 assign collector_finished = write_finished;
-assign collector_active_write_out = (state == COLLECTOR_WRITE) | collector_active_write_out_delay;
+assign collector_active_write_out = (state == COLLECTOR_WRITE);
 assign reg_collector_i_out = dest_i_delay;
 assign reg_collector_j_out = dest_j_delay;
 assign ready[0] = ready_0_0_in;

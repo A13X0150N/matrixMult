@@ -94,16 +94,16 @@ module mpu_load_store_tb;
         data_in.n_in = N_MEM;
         data_in.src_addr_0 = 5;
         $display("\tMatrix [%1d] LOAD", 5);
-        show_matrix(data_in.matrix_in);
+        //show_matrix(data_in.matrix_in);
         mpu_top.mpu_bfm.send_op(data_in, data_out);
 
-        generate_matrix(1.0, -1.0, data_in);
+        generate_matrix(1.0, 1.0, data_in);
         data_in.op = MPU_LOAD;
         data_in.m_in = M_MEM;
         data_in.n_in = N_MEM;
         data_in.src_addr_0 = 6;
         $display("\tMatrix [%1d] LOAD", 6);
-        show_matrix(data_in.matrix_in);
+        //show_matrix(data_in.matrix_in);
         mpu_top.mpu_bfm.send_op(data_in, data_out);
 
         generate_matrix(1.0, 1.0, data_in);
@@ -112,22 +112,13 @@ module mpu_load_store_tb;
         data_in.n_in = N_MEM;
         data_in.src_addr_0 = 7;
         $display("\tMatrix [%1d] LOAD", 7);
-        show_matrix(data_in.matrix_in);
+        //show_matrix(data_in.matrix_in);
         mpu_top.mpu_bfm.send_op(data_in, data_out);
 
         display_message("Operation: NOP");
         data_in.op = MPU_NOP;
         mpu_top.mpu_bfm.send_op(data_in, data_out);
-        simulation_register_dump(mpu_top.mpu_register_file.matrix_register_array);
-
-        display_message("Operation: STORE");
-        data_in.op = MPU_STORE;
-        for (i = 0; i < MATRIX_REGISTERS; ++i) begin
-            data_in.src_addr_0 = i;
-            mpu_top.mpu_bfm.send_op(data_in, data_out);
-            $display("\tMatrix [%1d] STORE", i);
-            //show_matrix(data_out.matrix_out);
-        end
+        //simulation_register_dump(mpu_top.mpu_register_file.matrix_register_array);
 
         display_message("Operation: NOP");
         data_in.op = MPU_NOP;
@@ -140,10 +131,27 @@ module mpu_load_store_tb;
         data_in.dest_addr = 5;
         mpu_top.mpu_bfm.send_op(data_in, data_out);
 
+        display_message("Operation: STORE");
+        data_in.op = MPU_STORE;
+        for (i = 0; i < MATRIX_REGISTERS; ++i) begin
+            data_in.src_addr_0 = i;
+            mpu_top.mpu_bfm.send_op(data_in, data_out);
+            $display("\tMatrix [%1d] STORE", i);
+            show_matrix(data_out.matrix_out);
+        end
+
         display_message("Operation: NOP");
         data_in.op = MPU_NOP;
         mpu_top.mpu_bfm.send_op(data_in, data_out);
-        simulation_register_dump(mpu_top.mpu_register_file.matrix_register_array);
+
+        //display_message("Operation: NOP");
+        //data_in.op = MPU_NOP;
+        //mpu_top.mpu_bfm.send_op(data_in, data_out);
+
+        //display_message("Operation: NOP");
+        //data_in.op = MPU_NOP;
+        //mpu_top.mpu_bfm.send_op(data_in, data_out);
+        //simulation_register_dump(mpu_top.mpu_register_file.matrix_register_array);
 
         $display("\n");
         display_message("End of LOAD and STORE Testbench");

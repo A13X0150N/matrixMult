@@ -51,6 +51,9 @@ package global_defs;
     parameter NBITS = $clog2(N)-1;          // Register column bits
     parameter MATRIX_REG_BITS = $clog2(MATRIX_REGISTERS)-1;  // Register address bits
 
+    parameter POS_ONE_32BIT = 32'h3f800000;
+    parameter NEG_ONE_32BIT = 32'hbf800000;
+
 endpackage : global_defs
 
 

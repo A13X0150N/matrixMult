@@ -49,6 +49,14 @@ module mpu_dispatcher
     bit cluster_free;
     bit time_to_wait;
 
+    // Delay signals
+    float_sp reg_disp_element_0_in_delay;
+    float_sp reg_disp_element_1_in_delay;
+    bit [MBITS:0] float_0_i_delay;
+    bit [NBITS:0] float_0_j_delay;
+    bit [MBITS:0] float_1_i_delay;
+    bit [NBITS:0] float_1_j_delay;
+
     // Request out signals
     bit float_0_req_0;
     bit float_0_req_1;
@@ -78,12 +86,6 @@ module mpu_dispatcher
     assign float_0_req_1_2_out = float_0_req_1;
     assign float_0_req_2_0_out = float_0_req_2;
     assign float_0_req_2_2_out = float_0_req_2;
-    assign float_1_req_0_0_out = float_1_req_0;
-    assign float_1_req_2_0_out = float_1_req_0;
-    assign float_1_req_0_1_out = float_1_req_1;
-    assign float_1_req_2_1_out = float_1_req_1;
-    assign float_1_req_0_2_out = float_1_req_2;
-    assign float_1_req_2_2_out = float_1_req_2;
 
     assign float_0_data_0_0_out = float_0_data_0;
     assign float_0_data_0_2_out = float_0_data_0;
@@ -91,6 +93,14 @@ module mpu_dispatcher
     assign float_0_data_1_2_out = float_0_data_1;
     assign float_0_data_2_0_out = float_0_data_2;
     assign float_0_data_2_2_out = float_0_data_2;
+    
+    assign float_1_req_0_0_out = float_1_req_0;
+    assign float_1_req_2_0_out = float_1_req_0;
+    assign float_1_req_0_1_out = float_1_req_1;
+    assign float_1_req_2_1_out = float_1_req_1;
+    assign float_1_req_0_2_out = float_1_req_2;
+    assign float_1_req_2_2_out = float_1_req_2;
+
     assign float_1_data_0_0_out = float_1_data_0;
     assign float_1_data_2_0_out = float_1_data_0;
     assign float_1_data_0_1_out = float_1_data_1;
@@ -102,14 +112,34 @@ module mpu_dispatcher
     assign cluster_free = ~(busy_0_0_in | busy_0_1_in | busy_0_2_in | busy_1_0_in | busy_1_2_in | busy_2_0_in | busy_2_1_in | busy_2_2_in);
     
     // Determine if it is time to wait for the next vector to load
-    assign time_to_wait = (float_0_i == M-1);
+    assign time_to_wait = (float_0_i == M);
 
     // Acknowledge that the dispatcher has began to work on a task
     assign disp_ack_out = (state != DISP_IDLE);
 
     // Track when the float dispatching is complete 
-    assign finished = (float_0_i == M-1) & !float_0_j;
+    assign finished = (float_0_i == M) & !float_0_j;
     assign disp_finished_out = finished;
+
+    // Delay signals
+    always_ff @(posedge clk) begin
+        if (rst) begin
+            reg_disp_element_0_in_delay <= '0;
+            reg_disp_element_1_in_delay <= '0;
+            float_0_i_delay <= '0;
+            float_0_j_delay <= '0;
+            float_1_i_delay <= '0;
+            float_1_j_delay <= '0;
+        end
+        else begin
+            reg_disp_element_0_in_delay <= reg_disp_element_0_in;
+            reg_disp_element_1_in_delay <= reg_disp_element_1_in;
+            float_0_i_delay <= float_0_i;
+            float_0_j_delay <= float_0_j;
+            float_1_i_delay <= float_1_i;
+            float_1_j_delay <= float_1_j;
+        end
+    end
 
     // Matrix indexing
     always_ff @(posedge clk) begin
@@ -199,7 +229,7 @@ module mpu_dispatcher
     end
 
     // Output logic
-    always_ff @(posedge clk) begin
+    always_ff @(posedge clk) begin   
         if (rst) begin
             float_0_req_0 <= FALSE;
             float_0_req_1 <= FALSE;
@@ -231,7 +261,7 @@ module mpu_dispatcher
                     float_1_data_2 <= '0;
                 end
                 DISP_MATRIX: begin
-                    if (float_0_i == 0) begin
+                    if (float_1_j == 1) begin
                         float_0_req_0 <= TRUE;
                         float_0_req_1 <= FALSE;
                         float_0_req_2 <= FALSE;
@@ -245,7 +275,7 @@ module mpu_dispatcher
                         float_1_data_1 <= '0;
                         float_1_data_2 <= '0;
                     end
-                    else if (float_0_i == 1) begin
+                    else if (float_1_j == 2) begin
                         float_0_req_0 <= FALSE;
                         float_0_req_1 <= TRUE;
                         float_0_req_2 <= FALSE;
@@ -259,7 +289,7 @@ module mpu_dispatcher
                         float_1_data_1 <= reg_disp_element_1_in;
                         float_1_data_2 <= '0;
                     end
-                    else if (float_0_i == 2) begin
+                    else if (float_1_j == 3) begin
                         float_0_req_0 <= FALSE;
                         float_0_req_1 <= FALSE;
                         float_0_req_2 <= TRUE;

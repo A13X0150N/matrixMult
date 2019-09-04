@@ -53,6 +53,7 @@ module fma
 
     bit [NBITS:0] count;
     bit error_in;
+    bit error_generated;
     bit busy;
     float_sp float_0;          
     float_sp float_1;                   //  1)   product = float_0 * float_1
@@ -66,6 +67,10 @@ module fma
     // Check for input errors (denormalized numbers, +infinity, -infinity, NaN)
     assign error_in = ((float_0_in.mantissa && !float_0_in.exponent) || float_0_in.exponent == '1) ||
                       ((float_1_in.mantissa && !float_1_in.exponent) || float_1_in.exponent == '1);
+
+    assign error_generated = ((float_0_in != POS_ONE_32BIT) && (float_0_in != NEG_ONE_32BIT)) &&
+                             ((float_1_in != POS_ONE_32BIT) && (float_1_in != NEG_ONE_32BIT)) &&
+                             (($signed(product.exponent) > MAX_EXP) || ($signed(product.exponent) < MIN_EXP));
 
     // State machine driver
     always_ff @(posedge clk) begin
@@ -116,7 +121,7 @@ module fma
             end
             OUTPUT: begin
                 // Check for overflow/underflow in the result
-                if (($signed(product.exponent) > MAX_EXP) || ($signed(product.exponent) < MIN_EXP)) begin
+                if (error_generated) begin
                     next_state <= ERROR;
                 end
                 else begin
@@ -127,7 +132,7 @@ module fma
                     else begin
                         next_state <= IDLE;
                     end
-                end
+               end
             end
             ERROR: begin 
                 next_state <= IDLE;
@@ -187,8 +192,8 @@ module fma
                     end
                     else begin
                         busy <= FALSE;
-                        float_0 <= '0;
-                        float_1 <= '0;
+                        float_0 <= float_0;
+                        float_1 <= float_1;
                     end
                     accum <= accum;
                     product <= '0;
@@ -238,10 +243,23 @@ module fma
                     float_0 <= float_0;
                     float_1 <= float_1;
                     accum <= accum;
-                    // Detect multiplication by zero and skip multiply operator
+                    // Detect multiplication by zero shortcut
                     if ((!float_0.exponent && !float_0.mantissa) || (!float_1.exponent && !float_1.mantissa)) begin
                         product <= '0;
                     end
+                    // Detect float_0 multiplication by 1 shortcut
+                    else if ((float_0 == POS_ONE_32BIT) || (float_0 == NEG_ONE_32BIT)) begin
+                        product.sign <= float_1.sign;
+                        product.exponent <= float_1.exponent;
+                        product.mantissa <= (float_1.mantissa | (1<<MANBITS)) << MANBITS; 
+                    end
+                    // Detect float_1 multiplication by 1 shortcut
+                    else if ((float_1 == POS_ONE_32BIT) || (float_1 == NEG_ONE_32BIT)) begin
+                        product.sign <= float_0.sign;
+                        product.exponent <= float_0.exponent;
+                        product.mantissa <= (float_0.mantissa | (1<<MANBITS)) << MANBITS; 
+                    end
+                    // Standard multiplication
                     else begin
                         product.sign <= float_0.sign ^ float_1.sign;
                         product.exponent <= ($signed(float_0.exponent)-EXP_OFFSET) + ($signed(float_1.exponent)-EXP_OFFSET) + EXP_OFFSET;
@@ -309,15 +327,15 @@ module fma
                     accum.exponent <= accum.exponent;
                     // Check if adding both positive or both negative numbers
                     if (accum.sign == product.sign) begin
-                        accum.mantissa <= product.mantissa + (accum.mantissa<<MANBITS);
+                        accum.mantissa <= product.mantissa + accum.mantissa;
                     end
                     // Else there is a subtraction to perform
                     else begin
-                        if (product.mantissa >= (accum.mantissa<<MANBITS)) begin
-                            accum.mantissa <= product.mantissa - (accum.mantissa<<MANBITS);
+                        if (product.mantissa >= accum.mantissa) begin
+                            accum.mantissa <= product.mantissa - accum.mantissa;
                         end
                         else begin
-                            accum.mantissa <= (accum.mantissa<<MANBITS) - product.mantissa;
+                            accum.mantissa <= accum.mantissa - product.mantissa;
                         end
                     end
                     product <= product;
@@ -362,18 +380,19 @@ module fma
                     accum <= accum;
                     product <= product;
                     // Check for overflow/underflow conditions from operation
-                    if (($signed(product.exponent) > MAX_EXP) || ($signed(product.exponent) < MIN_EXP)) begin
+                    if (error_generated) begin
                         count <= '0;
                         error_out <= TRUE;
                         float_answer_out <= '1;
                         ready_answer_out <= FALSE;
                     end
-                    else if (count == N-1) begin
+                    if (count == N) begin
                         count <= '0;
                         error_out <= FALSE;
                         float_answer_out.sign <= accum.sign;
                         float_answer_out.exponent <= accum.exponent;
                         float_answer_out.mantissa <= accum.mantissa[2*MANBITS-1:MANBITS];
+                        accum <= '0;
                         ready_answer_out <= TRUE;
                     end 
                     else begin
@@ -403,3 +422,4 @@ module fma
     end
 
 endmodule : fma
+

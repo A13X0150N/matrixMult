@@ -39,7 +39,8 @@ module mpu_controller
 
     bit start_mult;
 
-    always_ff @(posedge clk) begin
+    //always_ff @(posedge clk) begin
+    always_comb begin
         if (rst) begin
             start_mult <= FALSE;
         end

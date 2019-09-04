@@ -251,7 +251,7 @@ module fma_cluster (
 
         .float_0_in         (float_0_data_1_0),
         .float_0_out        (float_0_data_1_1),
-        .float_1_in         (float_1_data_0_0),
+        .float_1_in         (float_1_data_1_0),
         .float_1_out        (),
 
         .float_answer_out   (result_1_0),
