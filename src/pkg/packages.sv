@@ -157,15 +157,15 @@ package mpu_data_types;
     } mpu_data_sp;
 
      // FPU bus sequence item struct
-    typedef struct packed {
+    //typedef struct packed {
         // Request fields
-        fpu_instruction_e op;
-        float_sp a;
-        float_sp b;
+    //    fpu_instruction_e op;
+    //    float_sp a;
+    //    float_sp b;
 
         // Response fields
-        float_sp y;
-    } fpu_data_sp;
+     //   float_sp y;
+    //} fpu_data_sp;
 
 endpackage : mpu_data_types
 
@@ -181,14 +181,14 @@ package testbench_utilities;
 
     // Clock Controller
     parameter CLOCK_PERIOD = 10;
-    parameter CYCLES = 500;
+    parameter MAX_CYCLES = 500;
 
     parameter M_MEM = 3;                        // Testbench input matrix rows     MUST BE LESS THAN M (remove?)
     parameter N_MEM = 3;                        // Testbench input matrix columns  MUST BE LESS THAN N (remove?)
     parameter NUM_ELEMENTS = M_MEM * N_MEM;     // Number of input elements per matrix for testbench
 
     // Matrix generator
-    task generate_matrix(input shortreal seed, input shortreal scale, output mpu_data_sp genmat);
+    task automatic generate_matrix(input shortreal seed, input shortreal scale, ref mpu_data_sp genmat);
         for (int i = 0; i < NUM_ELEMENTS; i = i + 1) begin
             genmat.matrix_in = {(genmat.matrix_in), $shortrealtobits(seed + i * scale)};
         end

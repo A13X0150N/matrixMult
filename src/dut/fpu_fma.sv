@@ -291,8 +291,8 @@ module fma
                         else begin
                             accum <= accum;
                             product.sign <= product.sign;
-                            product.exponent <= $signed(product.exponent) + 2;
-                            product.mantissa <= product.mantissa >> 2;
+                            product.exponent <= $signed(product.exponent) + 1;
+                            product.mantissa <= product.mantissa >> 1;
                         end
                     end
                     // Else the product is normalized

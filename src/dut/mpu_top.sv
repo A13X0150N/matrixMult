@@ -9,17 +9,15 @@
  
 import global_defs::*;
 import mpu_data_types::*;
+import testbench_utilities::CLOCK_PERIOD;
 
 module mpu_top;
-    import testbench_utilities::CLOCK_PERIOD;
 
     bit clk=0;      // System clock
     bit rst=0;      // Synchronous reset, active high
 
-
     // Interface
     mpu_bfm mpu_bfm(.clk(clk), .rst(rst));
-
 
     // MPU Controller
     mpu_controller mpu_controller(
@@ -244,6 +242,7 @@ module mpu_top;
         .error_detected_in          (error_detected)
     );
 
+
     fma_cluster fma_cluster(
         // Control Signals
         .clk                        (clk),
@@ -309,7 +308,6 @@ module mpu_top;
         .error_detected_out         (mpu_bfm.error_detected)
     );
 
-
     // Free running clock
     // tbx clkgen
     initial begin
@@ -325,5 +323,6 @@ module mpu_top;
         rst = 1;
         #(CLOCK_PERIOD*5) rst = 0;
     end
+
 
 endmodule : mpu_top

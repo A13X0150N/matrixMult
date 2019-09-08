@@ -91,10 +91,10 @@ module top_exp;
 
         float_0_req_in = TRUE;
         float_1_req_in = TRUE;
-        //a = 9.0;
-        //b = 9.0;
-        a = 1.0;
-        b = 4.0;
+        a = 9.0;
+        b = 9.0;
+        //a = 4.0;
+        //b = 2.0;
         float_0_in = $shortrealtobits(a);
         float_1_in = $shortrealtobits(b);
         $display("float0 * float1: %f * %f", $bitstoshortreal(float_0_in), $bitstoshortreal(float_1_in));
@@ -105,10 +105,10 @@ module top_exp;
         
         float_0_req_in = TRUE;
         float_1_req_in = TRUE;
-        //a = 8.0;
-        //b = 6.0;
-        a = 4.0;
-        b = 5.0;
+        a = 8.0;
+        b = 6.0;
+        //a = 5.0;
+        //b = 5.0;
         float_0_in = $shortrealtobits(a);
         float_1_in = $shortrealtobits(b);
         $display("float0 * float1: %f * %f", $bitstoshortreal(float_0_in), $bitstoshortreal(float_1_in));
@@ -119,10 +119,10 @@ module top_exp;
 
         float_0_req_in = TRUE;
         float_1_req_in = TRUE;
-        //a = 7.0;
-        //b = 3.0;
         a = 7.0;
-        b = 6.0;
+        b = 3.0;
+        //a = 6.0;
+        //b = 8.0;
         float_0_in = $shortrealtobits(a);
         float_1_in = $shortrealtobits(b);
         $display("float0 * float1: %f * %f", $bitstoshortreal(float_0_in), $bitstoshortreal(float_1_in));
@@ -180,7 +180,7 @@ module fma
     internal_float_sp product;
     fma_state_e state, next_state;
 
-    float_sp debug_float;
+    float_sp debug_float1, debug_float2;
 
     // Broadcast busy state to neighbors
     assign busy_out = busy;
@@ -196,7 +196,7 @@ module fma
     // State machine driver
     always_ff @(posedge clk) begin
         state <= rst ? IDLE : next_state;
-        $strobe($time/10, " clock cycles   state: %s", state);
+        //$strobe($time/10, " clock cycles   state: %s", state);
     end
 
     // Next state logic
@@ -278,7 +278,8 @@ module fma
             product <= '0;
             float_answer_out <= '0;
             ready_answer_out <= FALSE;
-            debug_float <= '0;
+            debug_float1 <= '0;
+            debug_float2 <= '0;
         end
         else begin
             unique case (state)
@@ -322,7 +323,8 @@ module fma
                     product <= '0;
                     float_answer_out <= '0;
                     ready_answer_out <= FALSE;
-                    debug_float <= '0;
+                    debug_float1 <= '0;
+                    debug_float2 <= '0;
                 end
                 LOAD: begin
                     count <= count;
@@ -355,7 +357,8 @@ module fma
                     product <= '0;
                     float_answer_out <= '0;
                     ready_answer_out <= FALSE;
-                    debug_float <= '0;
+                    debug_float1 <= '0;
+                    debug_float2 <= '0;
                 end
                 MULTIPLY: begin
                     count <= count;
@@ -373,17 +376,17 @@ module fma
                         product <= '0;
                     end
                     // Detect float_0 multiplication by 1 shortcut
-                    else if ((float_0 == POS_ONE_32BIT) || (float_0 == NEG_ONE_32BIT)) begin
-                        product.sign <= float_1.sign;
-                        product.exponent <= float_1.exponent;
-                        product.mantissa <= (float_1.mantissa | (1<<MANBITS)) << MANBITS; 
-                    end
+                    //else if ((float_0 == POS_ONE_32BIT) || (float_0 == NEG_ONE_32BIT)) begin
+                    //    product.sign <= float_1.sign;
+                    //    product.exponent <= float_1.exponent;
+                    //    product.mantissa <= (float_1.mantissa | (1<<MANBITS)) << MANBITS; 
+                    //end
                     // Detect float_1 multiplication by 1 shortcut
-                    else if ((float_1 == POS_ONE_32BIT) || (float_1 == NEG_ONE_32BIT)) begin
-                        product.sign <= float_0.sign;
-                        product.exponent <= float_0.exponent;
-                        product.mantissa <= (float_0.mantissa | (1<<MANBITS)) << MANBITS; 
-                    end
+                    //else if ((float_1 == POS_ONE_32BIT) || (float_1 == NEG_ONE_32BIT)) begin
+                    //    product.sign <= float_0.sign;
+                    //    product.exponent <= float_0.exponent;
+                    //    product.mantissa <= (float_0.mantissa | (1<<MANBITS)) << MANBITS; 
+                    //end
                     // Standard multiplication
                     else begin
                         product.sign <= float_0.sign ^ float_1.sign;
@@ -392,7 +395,8 @@ module fma
                     end
                     float_answer_out <= '0;
                     ready_answer_out <= FALSE;
-                    debug_float <= '0;
+                    debug_float1 <= '0;
+                    debug_float2 <= '0;
                 end
                 ALIGN: begin
                     count <= count;
@@ -406,39 +410,54 @@ module fma
                     float_1 <= float_1;
                     // If the product is denormalized
                     if (product.mantissa[2*MANBITS+1]) begin
-                        if (accum.exponent < (product.exponent+1)) begin
+                        if (accum.exponent < (product.exponent)) begin
+                            $display("1");
                             accum.sign <= accum.sign;
                             accum.exponent <= $signed(accum.exponent) + ((product.exponent+1)-accum.exponent);
                             accum.mantissa <= (accum.mantissa | (1<<MANBITS)) >> ((product.exponent+1)-accum.exponent);
-                            product.sign <= product.sign;
-                            product.exponent <= $signed(product.exponent) + 1;
-                            product.mantissa <= product.mantissa >> 1;
+                            //product.sign <= product.sign;
+                            //product.exponent <= $signed(product.exponent) + 1;
+                            //product.mantissa <= product.mantissa >> 1;
+                            product <= product;
                         end
                         else begin
+                            $display("2");
                             accum <= accum;
                             product.sign <= product.sign;
-                            product.exponent <= $signed(product.exponent) + 2;
-                            product.mantissa <= product.mantissa >> 2;
+                            product.exponent <= $signed(product.exponent) + 0;
+                            product.mantissa <= product.mantissa >> 0;
                         end
                     end
                     // Else the product is normalized
                     else begin
                         if (accum.exponent < product.exponent) begin
+                            $display("3");
                             accum.sign <= accum.sign;
                             accum.exponent <= $signed(accum.exponent) + (product.exponent-accum.exponent);
                             accum.mantissa <= (accum.mantissa | (1<<MANBITS)) >> (product.exponent-accum.exponent);
                             product <= product;
                         end
                         else begin
+                            $display("4");    //   >:(
                             accum <= accum;
+                            //accum.sign <= accum.sign;
+                            //accum.exponent <= $signed(accum.exponent) + (product.exponent-accum.exponent);
+                            //accum.mantissa <= (accum.mantissa | (1<<MANBITS)) >> (product.exponent-accum.exponent);
                             product.sign <= product.sign;
-                            product.exponent <= $signed(product.exponent) + (accum.exponent-product.exponent);
+                            product.exponent <= $signed(product.exponent) + $signed(accum.exponent) - $signed(product.exponent);
                             product.mantissa <= product.mantissa >> (accum.exponent-product.exponent);
                         end
                     end
                     float_answer_out <= '0;
                     ready_answer_out <= FALSE;
-                    debug_float <= '0;
+                    debug_float1.sign <= product.sign;
+                    debug_float1.exponent <= product.exponent;
+                    debug_float1.mantissa <= product.mantissa[2*MANBITS-1:MANBITS];
+                    debug_float2.sign <= accum.sign;
+                    debug_float2.exponent <= accum.exponent;
+                    debug_float2.mantissa <= accum.mantissa[2*MANBITS-1:MANBITS];
+                    //$strobe(" debug prod: %f \n", $bitstoshortreal(debug_float1));
+                    //$strobe(" debug sum: %f \n", $bitstoshortreal(debug_float2));
                 end
                 ACCUMULATE: begin
                     count <= count + 1;
@@ -458,6 +477,7 @@ module fma
                     end
                     // Else there is a subtraction to perform
                     else begin
+                        $display("NO",);
                         if (product.mantissa >= accum.mantissa) begin
                             accum.mantissa <= product.mantissa - accum.mantissa;
                         end
@@ -468,7 +488,14 @@ module fma
                     product <= product;
                     float_answer_out <= '0;
                     ready_answer_out <= FALSE;
-                    debug_float <= '0;
+                    debug_float1.sign <= product.sign;
+                    debug_float1.exponent <= product.exponent;
+                    debug_float1.mantissa <= product.mantissa[2*MANBITS-1:MANBITS];
+                    debug_float2.sign <= accum.sign;
+                    debug_float2.exponent <= accum.exponent;
+                    debug_float2.mantissa <= accum.mantissa[2*MANBITS-1:MANBITS];
+                    //$strobe(" debug prod: %f \n", $bitstoshortreal(debug_float1));
+                    //$strobe(" debug sum: %f \n", $bitstoshortreal(debug_float2));
                 end
                 NORMALIZE: begin
                     count <= count;
@@ -485,6 +512,7 @@ module fma
                         accum.sign <= accum.sign;
                         accum.exponent <= $signed(accum.exponent) + 1;
                         accum.mantissa <= accum.mantissa >> 1;
+                        $display("NORMALIZE ACCUM");
                     end
                     else begin
                         accum <= accum;
@@ -492,7 +520,8 @@ module fma
                     product <= product;
                     float_answer_out <= '0;
                     ready_answer_out <= FALSE;
-                    debug_float <= '0;
+                    debug_float1 <= '0;
+                    debug_float2 <= '0;
                 end
                 OUTPUT: begin
                     busy <= TRUE;
@@ -531,10 +560,14 @@ module fma
                         float_answer_out <= '0;
                         ready_answer_out <= FALSE;
                     end
-                    debug_float.sign <= product.sign;
-                    debug_float.exponent <= product.exponent;
-                    debug_float.mantissa <= product.mantissa[2*MANBITS-1:MANBITS];
-                    $strobe(" debug prod: %f \n", $bitstoshortreal(debug_float));
+                    debug_float1.sign <= product.sign;
+                    debug_float1.exponent <= product.exponent;
+                    debug_float1.mantissa <= product.mantissa[2*MANBITS-1:MANBITS];
+                    debug_float2.sign <= accum.sign;
+                    debug_float2.exponent <= accum.exponent;
+                    debug_float2.mantissa <= accum.mantissa[2*MANBITS-1:MANBITS];
+                    $strobe(" debug prod: %f \n", $bitstoshortreal(debug_float1));
+                    //$strobe(" debug sum 2: %f \n", $bitstoshortreal(debug_float2));
                 end
                 ERROR: begin
                     count <= '0;
@@ -550,7 +583,8 @@ module fma
                     product <= '0;
                     float_answer_out <= '1;
                     ready_answer_out <= FALSE;
-                    debug_float <= '0;
+                    debug_float1 <= '0;
+                    debug_float2 <= '0;
                     $display("\n\n   >:-( ERROR )-:< \n\n");
                 end
             endcase
