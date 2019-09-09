@@ -19,10 +19,11 @@ work:
 # Compile/synthesize the simulation environment
 build:
 	vlog src/pkg/packages.sv					# Compile the package
-	vlog src/tb/coverage.sv						# Compile the coverage
-	vlog src/tb/scoreboard.sv					# Compile the scoreboard
-	vlog src/tb/driver.sv						# Compile the driver
-	vlog src/tb/testbench.sv					# Compile the testbench
+	vlog src/tb/coverage_tb.sv					# Compile the coverage
+	vlog src/tb/scoreboard_tb.sv				# Compile the scoreboard
+	vlog src/tb/driver_tb.sv					# Compile the driver
+	vlog src/tb/checker_tb.sv					# Compile the checker
+	vlog src/tb/testbench_tb.sv					# Compile the testbench
 	vlog src/tb/top_tb.sv 						# Compile the top-level testbench
 	vlog src/dut/mpu_bfm.sv						# Compile the MPU interface
 	vlog src/dut/mpu_register_file.sv			# Compile the DUT register files
@@ -39,13 +40,14 @@ build:
 # Compile/synthesize the emulation environment
 vbuild:
 	vlog src/pkg/packages.sv					# Compile the package
-	vlog src/tb/coverage.sv						# Compile the coverage
-	vlog src/tb/scoreboard.sv					# Compile the scoreboard
-	vlog src/tb/driver.sv						# Compile the driver
-	vlog src/tb/testbench.sv					# Compile the testbench
+	vlog src/tb/coverage_tb.sv					# Compile the coverage
+	vlog src/tb/scoreboard_tb.sv				# Compile the scoreboard
+	vlog src/tb/driver_tb.sv					# Compile the driver
+	vlog src/tb/checker_tb.sv					# Compile the checker
+	vlog src/tb/testbench_tb.sv					# Compile the testbench
 	vlog src/tb/top_tb.sv		   				# Compile the top-level testbench		
 	velanalyze src/pkg/packages.sv				# Analyze the package for synthesis
-	velanalyze -extract_hvl_info +define+QUESTA src/tb/driver.sv	# Analyze the HVL for external task calls in BFM
+	velanalyze -extract_hvl_info +define+QUESTA src/tb/driver_tb.sv	# Analyze the HVL for external task calls in BFM
 	velanalyze src/dut/mpu_bfm.sv				# Analyze the MPU interface for synthesis
 	velanalyze src/dut/mpu_top.sv				# Analyze the HDL top for synthesis
 	velanalyze src/dut/mpu_register_file.sv		# Analyze the DUT register files for synthesis

@@ -72,6 +72,12 @@ package mpu_data_types;
         TRUE
     } bool_e;
 
+    // Test status data type
+    typedef enum bit {
+        FAIL,
+        PASS
+    } test_e;
+
     // MPU instructions
     typedef enum bit [1:0] {
         MPU_NOP,
@@ -156,17 +162,6 @@ package mpu_data_types;
         float_sp [0:8] matrix_out;
     } mpu_data_sp;
 
-     // FPU bus sequence item struct
-    //typedef struct packed {
-        // Request fields
-    //    fpu_instruction_e op;
-    //    float_sp a;
-    //    float_sp b;
-
-        // Response fields
-     //   float_sp y;
-    //} fpu_data_sp;
-
 endpackage : mpu_data_types
 
 
@@ -186,6 +181,8 @@ package testbench_utilities;
     parameter M_MEM = 3;                        // Testbench input matrix rows     MUST BE LESS THAN M (remove?)
     parameter N_MEM = 3;                        // Testbench input matrix columns  MUST BE LESS THAN N (remove?)
     parameter NUM_ELEMENTS = M_MEM * N_MEM;     // Number of input elements per matrix for testbench
+
+    parameter MAX_ERROR = 1.0;
 
     // Matrix generator
     task automatic generate_matrix(input shortreal seed, input shortreal scale, ref mpu_data_sp genmat);

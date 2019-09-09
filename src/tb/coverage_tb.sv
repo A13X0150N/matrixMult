@@ -1,11 +1,11 @@
-// coverage.sv
+// coverage_tb.sv
 
 import global_defs::*;
 import mpu_data_types::*;
 import testbench_utilities::*;
 
 // Coverage defines the scope of the verification
-class coverage;
+class coverage_tb;
 
     virtual mpu_bfm bfm;
 
@@ -43,7 +43,7 @@ class coverage;
     endfunction : new
 
     task execute();
-        $display("coverage_h.execute()");
+        //$display("coverage_h.execute()");
     endtask : execute
 
-endclass : coverage
+endclass : coverage_tb

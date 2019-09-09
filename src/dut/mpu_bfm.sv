@@ -205,9 +205,9 @@ interface mpu_bfm(input clk, rst);
                 start_mult <= FALSE;
                 
                 // Remove after debugging for better parallel performance
-                while (!collector_finished) begin
-                    @(posedge clk);
-                end
+                //while (!collector_finished) begin
+                //    @(posedge clk);
+                //end
                 @(posedge clk);
             end
 
