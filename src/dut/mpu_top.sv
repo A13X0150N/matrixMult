@@ -1,11 +1,13 @@
 // mpu_top.sv
 // ----------------------------------------------------------------------------
 //   Author: Alex Olson
-//     Date: June 2019
+//     Date: August 2019
 //
 // Desciption:
 // ----------------------------------------------------------------------------
-// Top-level design for DUT and testbench. Eventually migrate to UVM.
+// Top-level design for DUT. 
+//
+// ----------------------------------------------------------------------------
  
 import global_defs::*;
 import mpu_data_types::*;
@@ -45,7 +47,6 @@ module mpu_top;
         .reg_src_addr_1_out         (mpu_bfm.reg_src_addr_1),
         .reg_dest_addr_out          (mpu_bfm.reg_dest_addr)
     );
-
 
     // Register file
     mpu_register_file mpu_register_file(
@@ -95,7 +96,6 @@ module mpu_top;
 
     );
 
-
     // Move matrix from external memory into internal registers
     mpu_load mpu_load(
         // Control signals
@@ -122,7 +122,6 @@ module mpu_top;
         .reg_n_load_size_out        (mpu_bfm.reg_n_load_size)
     );
 
-
     // Move matrix from internal register out to memory
     mpu_store mpu_store(
         // Control signals
@@ -147,7 +146,6 @@ module mpu_top;
         .mem_n_store_size_out       (mpu_bfm.mem_n_store_size),
         .mem_store_element_out      (mpu_bfm.mem_store_element)
     );
-
 
     // Dipatch matrix elements into exectuion cluster
     mpu_dispatcher mpu_dispatcher(
@@ -205,7 +203,6 @@ module mpu_top;
         .float_1_data_2_2_out       (mpu_bfm.float_1_data_2_2)
     );
 
-
     // Collect answers from execution cluster and return to memory
     mpu_collector mpu_collector(
         .clk                        (clk),
@@ -239,9 +236,8 @@ module mpu_top;
         .ready_2_1_in               (mpu_bfm.ready_2_1),
         .ready_2_2_in               (mpu_bfm.ready_2_2),
 
-        .error_detected_in          (error_detected)
+        .error_detected_in          (mpu_bfm.error_detected)//
     );
-
 
     fma_cluster fma_cluster(
         // Control Signals
@@ -323,6 +319,5 @@ module mpu_top;
         rst = 1;
         #(CLOCK_PERIOD*5) rst = 0;
     end
-
 
 endmodule : mpu_top

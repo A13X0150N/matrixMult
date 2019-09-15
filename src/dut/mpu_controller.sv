@@ -1,11 +1,13 @@
 // mpu_controller.sv
 // ----------------------------------------------------------------------------
 //   Author: Alex Olson
-//     Date: June 2019
+//     Date: August 2019
 //
 // Desciption:
 // ----------------------------------------------------------------------------
-// Controller for interfacing with memory with functional units
+// Controller for interfacing memory with functional units
+//
+// ----------------------------------------------------------------------------
 
 import global_defs::*;
 import mpu_data_types::*;
@@ -37,10 +39,10 @@ module mpu_controller
     output bit [MATRIX_REG_BITS:0] reg_dest_addr_out            // Destination address
 );
 
-    bit start_mult;
+    bit start_mult;                                             // Signal to start multiplication process
 
-    //always_ff @(posedge clk) begin
-    always_comb begin
+    // Track when to toggle start mult signal
+    always_ff @(posedge clk) begin
         if (rst) begin
             start_mult <= FALSE;
         end

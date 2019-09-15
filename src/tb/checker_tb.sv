@@ -1,4 +1,18 @@
 // checker_tb.sv
+// ----------------------------------------------------------------------------
+//   Author: Alex Olson
+//     Date: August 2019
+//
+// Desciption:
+// ----------------------------------------------------------------------------
+// Testbench design checker. Uses a reference model with a set of identical
+// matrix registers. Every interface transaction has a copy of placed in the
+// mailbox and the result is sent in another mailbox to the scoreboard. Failing
+// the checker means that the total accumulated difference of the design matrix
+// result and the checker matrix result is greater than the tolerance defined
+// in the testbench utilities package. Results are checked after a store.
+//
+// ----------------------------------------------------------------------------
 
 import global_defs::*;
 import mpu_data_types::*;
@@ -7,20 +21,22 @@ import testbench_utilities::*;
 // The driver sends inputs into the bfm and checks results returned back
 class checker_tb;
 
-    virtual mpu_bfm bfm;
-    mailbox #(mpu_data_sp) driver2checker;
-    mailbox checker2scoreboard;
-    mpu_data_sp data;
-    int i, k, row, col;
-    shortreal sum;
+    virtual mpu_bfm bfm;                                    // Virtual BFM interface
+    mailbox #(mpu_data_sp) driver2checker;                  // Mailbox to receive from driver
+    mailbox checker2scoreboard;                             // Mailbox to send to scoreboard
+    mpu_data_sp data;                                       // Interface data packet from mailbox
+    int i, k, row, col;                                     // Various for-loop iterators
+    shortreal sum;                                          // Sum of total error in a matrix
     float_sp ref_register_array [MATRIX_REGISTERS][M][N];   // Matrix Registers
-    float_sp matrix_result [M][N];
-    test_e test_result;
+    float_sp matrix_result [M][N];                          // Reference model result
+    test_e test_result;                                     // Pass/Fail to send to scoreboard
 
+    // Object instantiation
     function new (virtual mpu_bfm b);
         this.bfm = b;
     endfunction : new
 
+    // Reference model
     task execute();
         forever begin
             driver2checker.get(data);

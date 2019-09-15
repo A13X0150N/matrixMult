@@ -8,6 +8,8 @@
 // register file --> external source
 // Store a matrix from the register into an external memory source one floating
 // point number at a time.
+//
+// ----------------------------------------------------------------------------
 
 import global_defs::*;
 import mpu_data_types::*;
@@ -15,9 +17,9 @@ import mpu_data_types::*;
 module mpu_store
 (
     // Control signals
-    input clk,                                              // Clock
-    input rst,                                              // Synchronous reset active high
-    input store_req_in,                                     // Signal input data
+    input       clk,                                        // Clock
+    input       rst,                                        // Synchronous reset active high
+    input   bit store_req_in,                               // Signal input data
 
     // To register file
     input  bit store_ready_in,                              // Matrix store ready signal
@@ -37,13 +39,13 @@ module mpu_store
     output float_sp mem_store_element_out                   // Matrix element output
 );
 
-    bit [MBITS:0] row_ptr;
-    bit [NBITS:0] col_ptr;
-    bit store_finished;
-    bit row_end;
-    bit col_end;
+    bit [MBITS:0] row_ptr;                                  // Row location pointer
+    bit [NBITS:0] col_ptr;                                  // Column location pointer
+    bit store_finished;                                     // Store finished signal
+    bit row_end;                                            // End of row signal
+    bit col_end;                                            // End of column signal
 
-    store_state_e state, next_state;
+    store_state_e state, next_state;                        // Store states
 
     // Matrix address and element
     assign reg_store_addr_out = mem_store_addr_in;

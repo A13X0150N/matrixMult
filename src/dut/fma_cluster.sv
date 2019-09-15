@@ -1,32 +1,45 @@
 // fma_cluster.sv
+// ----------------------------------------------------------------------------
+//   Author: Alex Olson
+//     Date: August 2019
+//
+// Desciption:
+// ----------------------------------------------------------------------------
+// A 3x3 cluster of IEEE-754 Fused-Multiply Accumulate cores partitioned in a
+// hypercube configuration.
+//
+// cluster naming convention:  label_i_j  
 //
 //
-//                                               MATRIX B (float_1)
-//
-//                          float_inB0          float_inB1         float_inB2
-//
-//             float_inA0      fma00 --- float0 --- fma01 --- float1 --- fma02
-//                               | \                 | \                 | \
-//                          float2  ans0        float3  ans1        float4  ans2                                  ans00   ans01   ans02
-//                               |                   |                   |
-//  MATRIX A   float_inA1      fma10 --- float5 --- fma11 --- float6 --- fma12            Matrix A * Matrix B  =  ans10   ans11   ans12
-//  (float_0)                    | \                 | \                 | \
-//                          float7  ans3        float8  ans4        float9  ams5                                  ans20   ans21   ans22
-//                               |                   |                   |
-//             float_inA2      fma20 --- float10 -- fma21 -- float11 --- fma22
-//                                 \                   \                   \
-//                                  ans6                ans7                ans8
-//
-//
-// cluster naming convention:  label_i_j
-//
-//    3x3               4x4
+//      Example partitioning
+//    3x3                 4x4
 //  x x   x            x x   x x
 //  x x   x            x x   x x
 //
 //  x x   x            x x   x x
 //                     x x   x x
 //
+//
+//                       Matrix B flows down  and up
+//                               |                 ^
+//                               |                 |
+//   Matrix A flows right --->   v                 |
+//               and left <---
+// 
+//
+//                3x3 Grid                      Single FMA unit
+//         FMA ---- FMA      FMA                      Up
+//          | \      | \      | \                     |
+//          |  ans   |  ans   |  ans                  v
+//         FMA ---- FMA      FMA           Left ---> FMA ---> Right
+//            \        \        \                     | \
+//             ans      ans      ans                  v  ans
+//         FMA ---- FMA       FMA                    Down
+//            \        \        \
+//             ans      ans      ans
+//
+//
+// ----------------------------------------------------------------------------   
 
 import global_defs::*;
 import mpu_data_types::*;
@@ -167,7 +180,7 @@ module fma_cluster (
                             error_2_0 | error_2_1 | error_2_2;
 
     // FMA units
-    fma fma_0_0 (
+    fpu_fma fma_0_0 (
         .clk                (clk),
         .rst                (rst),
 
@@ -190,7 +203,7 @@ module fma_cluster (
         .error_out          (error_0_0)
     );
 
-    fma fma_0_1 (
+    fpu_fma fma_0_1 (
         .clk                (clk),
         .rst                (rst),
 
@@ -213,7 +226,7 @@ module fma_cluster (
         .error_out          (error_0_1)
     );
 
-    fma fma_0_2 (
+    fpu_fma fma_0_2 (
         .clk                (clk),
         .rst                (rst),
 
@@ -236,7 +249,7 @@ module fma_cluster (
         .error_out          (error_0_2)
     );
 
-    fma fma_1_0 (
+    fpu_fma fma_1_0 (
         .clk                (clk),
         .rst                (rst),
 
@@ -259,8 +272,7 @@ module fma_cluster (
         .error_out          (error_1_0)
     );
 
-    // FMA units
-    fma fma_1_1 (
+    fpu_fma fma_1_1 (
         .clk                (clk),
         .rst                (rst),
 
@@ -283,7 +295,7 @@ module fma_cluster (
         .error_out          (error_1_1)
     );
 
-    fma fma_1_2 (
+    fpu_fma fma_1_2 (
         .clk                (clk),
         .rst                (rst),
 
@@ -306,7 +318,7 @@ module fma_cluster (
         .error_out          (error_1_2)
     );
 
-    fma fma_2_0 (
+    fpu_fma fma_2_0 (
         .clk                (clk),
         .rst                (rst),
 
@@ -329,7 +341,7 @@ module fma_cluster (
         .error_out          (error_2_0)
     );
 
-    fma fma_2_1 (
+    fpu_fma fma_2_1 (
         .clk                (clk),
         .rst                (rst),
 
@@ -352,7 +364,7 @@ module fma_cluster (
         .error_out          (error_2_1)
     );
 
-    fma fma_2_2 (
+    fpu_fma fma_2_2 (
         .clk                (clk),
         .rst                (rst),
 

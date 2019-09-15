@@ -8,6 +8,8 @@
 // external source --> register file
 // Load a matrix from an external memory source into the registers one floating
 // point number at a time.
+//
+// ----------------------------------------------------------------------------
  
 import global_defs::*;
 import mpu_data_types::*;
@@ -15,37 +17,37 @@ import mpu_data_types::*;
 module mpu_load 
 (
     // Control signals
-    input clk,              // Clock
-    input rst,              // Synchronous reset active high
-    input load_req_in,      // Signal input data
+    input       clk,                                        // Clock
+    input       rst,                                        // Synchronous reset active high
+    input  bit  load_req_in,                                // Signal input data
 
     // Input matrix from file or memory
-    input  float_sp mem_load_element_in,                  // Incoming float, matrix element
-    input  bit [MBITS:0] mem_m_load_size_in,              // m-dimension of input matrix (rows)
-    input  bit [NBITS:0] mem_n_load_size_in,              // n-dimension of input matrix (columns)
-    input  bit [MATRIX_REG_BITS:0] mem_load_addr_in,      // Matrix address   
-    output bit mem_load_error_out,                        // Error detection
-    output bit mem_load_ack_out,                          // Receive data handshake signal
+    input  float_sp mem_load_element_in,                    // Incoming float, matrix element
+    input  bit [MBITS:0] mem_m_load_size_in,                // M-dimension of input matrix (rows)
+    input  bit [NBITS:0] mem_n_load_size_in,                // N-dimension of input matrix (columns)
+    input  bit [MATRIX_REG_BITS:0] mem_load_addr_in,        // Matrix address   
+    output bit mem_load_error_out,                          // Error detection
+    output bit mem_load_ack_out,                            // Receive data handshake signal
 
     // Output to register file
-    input  bit load_ready_in,                             // Matrix load ready signal
-    output bit reg_load_req_out,                           // Matrix load request
-    output bit [MATRIX_REG_BITS:0] reg_load_addr_out,     // Matrix address load location 
-    output float_sp reg_load_element_out,                 // Matrix data
-    output bit [MBITS:0] reg_i_load_loc_out,              // Matrix row location
-    output bit [NBITS:0] reg_j_load_loc_out,              // Matrix column location
-    output bit [MBITS:0] reg_m_load_size_out,             // Matrix row size
-    output bit [NBITS:0] reg_n_load_size_out              // Matrix column size
+    input  bit load_ready_in,                               // Matrix load ready signal
+    output bit reg_load_req_out,                            // Matrix load request
+    output bit [MATRIX_REG_BITS:0] reg_load_addr_out,       // Matrix address load location 
+    output float_sp reg_load_element_out,                   // Matrix data
+    output bit [MBITS:0] reg_i_load_loc_out,                // Matrix row location
+    output bit [NBITS:0] reg_j_load_loc_out,                // Matrix column location
+    output bit [MBITS:0] reg_m_load_size_out,               // Matrix row size
+    output bit [NBITS:0] reg_n_load_size_out                // Matrix column size
 );
 
-    bit [MBITS:0] row_ptr;
-    bit [NBITS:0] col_ptr;
-    bit load_finished;
-    bit mem_size_error;
-    bit row_end;
-    bit col_end;
+    bit [MBITS:0] row_ptr;                                  // Row location pointer
+    bit [NBITS:0] col_ptr;                                  // Column location pointer
+    bit load_finished;                                      // Signal load is finished
+    bit mem_size_error;                                     // Check for memory out-of-bounds
+    bit row_end;                                            // End of row signal
+    bit col_end;                                            // End of column signal
 
-    load_state_e state, next_state;
+    load_state_e state, next_state;                         // Load state
 
     // Error detection
     assign mem_size_error = (mem_m_load_size_in > M || mem_n_load_size_in > N || !mem_m_load_size_in || !mem_n_load_size_in);

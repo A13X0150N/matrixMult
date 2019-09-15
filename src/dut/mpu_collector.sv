@@ -1,4 +1,15 @@
 // mpu_collector.sv
+// ----------------------------------------------------------------------------
+//   Author: Alex Olson
+//     Date: August 2019
+//
+// Desciption:
+// ----------------------------------------------------------------------------
+// Floating point collector that writes the results collected from FMA cluster
+// to the register file. The collector waits for an answer ready signal from
+// the center of the cluster (last answer to arrive).
+//
+// ----------------------------------------------------------------------------
 
 import global_defs::*;
 import mpu_data_types::*;
@@ -23,40 +34,34 @@ module mpu_collector (
                     ready_1_0_in, ready_1_1_in, ready_1_2_in,
                     ready_2_0_in, ready_2_1_in, ready_2_2_in,
 
-    input  bit error_detected_in
+    input  bit error_detected_in                    // Detect an error on the input
 );
 
-collector_state_e state, next_state;
-bit write_to_memory;
-bit write_finished;
-bit write_finished_delay;
-bit collector_active_write_out_delay;
-bit [MBITS:0] dest_i;
-bit [MBITS:0] dest_i_delay;
-bit [NBITS:0] dest_j;
-bit [NBITS:0] dest_j_delay;
-float_sp buffer [M][N]; // pragma attribute buffer ram_block 1
-bit ready [M*N];
+collector_state_e state, next_state;                // Collector state
+bit write_to_memory;                                // Signal to track when to start the memory write
+bit write_finished;                                 // Signal finished writing to memory
+bit active_write;
+bit [MBITS:0] dest_i;                               // Destination i location
+bit [MBITS:0] dest_i_delay;                         // Destination i location delay
+bit [NBITS:0] dest_j;                               // Destination j location
+bit [NBITS:0] dest_j_delay;                         // Destination j location delay
+float_sp buffer [M][N];                             // pragma attribute buffer ram_block 1
+bit ready [M*N];                                    // Array of unit read signals
 
 // Write delayed signals
 always_ff @(posedge clk) begin
     if (rst) begin
         dest_i_delay <= '0;
         dest_j_delay <= '0;
-        write_finished_delay <= '0;
-        collector_active_write_out_delay <= '0;
     end
     else begin
         dest_i_delay <= dest_i;
         dest_j_delay <= dest_j;
-        write_finished_delay <= write_finished;
-        collector_active_write_out_delay <= collector_active_write_out;
     end
 end
 
 assign write_finished = (dest_i_delay == M-1) & (dest_j_delay == N-1);
 assign collector_finished = write_finished;
-assign collector_active_write_out = (state == COLLECTOR_WRITE);
 assign reg_collector_i_out = dest_i_delay;
 assign reg_collector_j_out = dest_j_delay;
 assign ready[0] = ready_0_0_in;
@@ -161,19 +166,21 @@ end
 // Output buffer to matrix register file
 always_ff @(posedge clk) begin
     if (rst) begin
+        collector_active_write_out <= FALSE;
         reg_collector_element_out <= '0;
     end
     else begin
         unique case (state)
             COLLECTOR_IDLE: begin
+                collector_active_write_out <= FALSE;
                 reg_collector_element_out <= '0;
             end
             COLLECTOR_WRITE: begin
+                collector_active_write_out <= TRUE;
                 reg_collector_element_out <= buffer[dest_i][dest_j];
             end
         endcase
     end
 end
-
 
 endmodule : mpu_collector

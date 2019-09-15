@@ -19,7 +19,6 @@ work:
 # Compile/synthesize the simulation environment
 build:
 	vlog src/pkg/packages.sv					# Compile the package
-	vlog src/tb/coverage_tb.sv					# Compile the coverage
 	vlog src/tb/scoreboard_tb.sv				# Compile the scoreboard
 	vlog src/tb/driver_tb.sv					# Compile the driver
 	vlog src/tb/checker_tb.sv					# Compile the checker
@@ -40,7 +39,6 @@ build:
 # Compile/synthesize the emulation environment
 vbuild:
 	vlog src/pkg/packages.sv					# Compile the package
-	vlog src/tb/coverage_tb.sv					# Compile the coverage
 	vlog src/tb/scoreboard_tb.sv				# Compile the scoreboard
 	vlog src/tb/driver_tb.sv					# Compile the driver
 	vlog src/tb/checker_tb.sv					# Compile the checker
@@ -70,10 +68,6 @@ experiment:
 # Run simulation or emulation
 run:
 	vsim -c -do "run -all; quit -f" top_tb mpu_top	# Run all
-
-# norun lets you control stepping etc.
-norun:
-	vsim -c +tbxrun+norun top_tb mpu_top -cpppath $(CPP_PATH)
 
 # Clean the environment
 clean:

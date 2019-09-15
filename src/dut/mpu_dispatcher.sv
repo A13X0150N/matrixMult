@@ -1,4 +1,14 @@
 // mpu_dispatcher.sv
+// ----------------------------------------------------------------------------
+//   Author: Alex Olson
+//     Date: August 2019
+//
+// Desciption:
+// ----------------------------------------------------------------------------
+// Loads floats from registers and sends them into the FMA cluster when a start
+// signal is received and the FMA cluster is free.
+//
+// ----------------------------------------------------------------------------
 
 import global_defs::*;
 import mpu_data_types::*;
@@ -6,19 +16,19 @@ import mpu_data_types::*;
 module mpu_dispatcher 
 (
     // Control signals
-    input  clk,                                             // Clock
-    input  rst,                                             // Synchronous reset active high
-    input  bit disp_start_in,                               // Start distributing data signal
-    output bit disp_ack_out,                                // Signal data distribution started
-    output bit disp_finished_out,                           // Signal finished dispatching
+    input       clk,                                        // Clock
+    input       rst,                                        // Synchronous reset active high
+    input  bit  disp_start_in,                              // Start distributing data signal
+    output bit  disp_ack_out,                               // Signal data distribution started
+    output bit  disp_finished_out,                          // Signal finished dispatching
 
     // To matrix register file
     output bit [MBITS:0] reg_disp_0_i_out,                  // Dispatcher output row location
     output bit [NBITS:0] reg_disp_0_j_out,                  // Dispatcher output column location
     output bit [MBITS:0] reg_disp_1_i_out,                  // Dispatcher output row location
     output bit [NBITS:0] reg_disp_1_j_out,                  // Dispatcher output column location
-    input  float_sp reg_disp_element_0_in,                  // Dispatcher element 0 input
-    input  float_sp reg_disp_element_1_in,                  // Dispatcher element 1 input
+    input  float_sp      reg_disp_element_0_in,             // Dispatcher element 0 input
+    input  float_sp      reg_disp_element_1_in,             // Dispatcher element 1 input
 
     // To FMA cluster
     input  bit  busy_0_0_in, busy_0_1_in, busy_0_2_in, 
@@ -40,14 +50,14 @@ module mpu_dispatcher
                     float_1_data_2_0_out, float_1_data_2_1_out, float_1_data_2_2_out
 );
 
-    disp_state_e state, next_state;
-    bit [MBITS:0] float_0_i;
-    bit [NBITS:0] float_0_j;
-    bit [MBITS:0] float_1_i;
-    bit [NBITS:0] float_1_j;
-    bit finished;
-    bit cluster_free;
-    bit time_to_wait;
+    disp_state_e state, next_state;                         // Dispatcher state
+    bit [MBITS:0] float_0_i;                                // Float 0 location i
+    bit [NBITS:0] float_0_j;                                // Float 0 location j
+    bit [MBITS:0] float_1_i;                                // Float 1 location i
+    bit [NBITS:0] float_1_j;                                // Float 1 location j
+    bit finished;                                           // Dispatcher finished signal
+    bit cluster_free;                                       // FMA cluster free signal
+    bit time_to_wait;                                       // Wait for the cluster to become free
 
     // Delay signals
     float_sp reg_disp_element_0_in_delay;

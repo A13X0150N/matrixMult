@@ -6,6 +6,8 @@
 // Desciption:
 // ----------------------------------------------------------------------------
 // Contains packages with definitions for design and testbench.
+//
+// ----------------------------------------------------------------------------
 
  
 // Definitions for global space
@@ -167,6 +169,7 @@ endpackage : mpu_data_types
 
 // Testbench functions and tasks
 package testbench_utilities;
+
     import global_defs::FPBITS;
     import global_defs::MATRIX_REGISTERS;
     import global_defs::M;
@@ -178,18 +181,26 @@ package testbench_utilities;
     parameter CLOCK_PERIOD = 10;
     parameter MAX_CYCLES = 500;
 
-    parameter M_MEM = 3;                        // Testbench input matrix rows     MUST BE LESS THAN M (remove?)
-    parameter N_MEM = 3;                        // Testbench input matrix columns  MUST BE LESS THAN N (remove?)
+    parameter M_MEM = 3;                        // Testbench input matrix rows     MUST BE LESS THAN M
+    parameter N_MEM = 3;                        // Testbench input matrix columns  MUST BE LESS THAN N
     parameter NUM_ELEMENTS = M_MEM * N_MEM;     // Number of input elements per matrix for testbench
 
-    parameter MAX_ERROR = 1.0;
+    parameter MAX_ERROR = 10.0;                 // Maximux tolerated error accumulated across a matrix
+    parameter NUM_TESTS = 100;                  // Scalable number of tests to perform
 
-    // Matrix generator
+    // Matrix generator, incremental order
     task automatic generate_matrix(input shortreal seed, input shortreal scale, ref mpu_data_sp genmat);
         for (int i = 0; i < NUM_ELEMENTS; i = i + 1) begin
             genmat.matrix_in = {(genmat.matrix_in), $shortrealtobits(seed + i * scale)};
         end
     endtask : generate_matrix
+
+    // Matrix generator, decremental order
+    task automatic generate_matrix_reverse(input shortreal seed, input shortreal scale, ref mpu_data_sp genmat);
+        for (int i = NUM_ELEMENTS; i; --i) begin
+            genmat.matrix_in = {(genmat.matrix_in), $shortrealtobits(seed + i * scale)};
+        end
+    endtask : generate_matrix_reverse
 
     // Matrix Output
     task show_matrix(input float_sp [0:NUM_ELEMENTS-1] matrix_in);
@@ -317,4 +328,3 @@ package testbench_utilities;
     endtask : simulation_register_dump
 
 endpackage : testbench_utilities
-

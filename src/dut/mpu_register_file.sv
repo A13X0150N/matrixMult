@@ -11,6 +11,8 @@
 // The registers are designed to be load/store dual-ported.
 // Modules that use this must use their assigned ready out signal to know when it
 // is ok to read/write to the registers.
+//
+// ----------------------------------------------------------------------------
  
 import global_defs::*;
 import mpu_data_types::*;
@@ -18,8 +20,8 @@ import mpu_data_types::*;
 module mpu_register_file 
 (
     // Control Signals
-    input  clk,                                             // Clock
-    input  rst,                                             // Synchronous reset, active high
+    input      clk,                                         // Clock
+    input      rst,                                         // Synchronous reset, active high
     input  bit reg_load_req_in,                             // Matrix load request
     input  bit reg_store_req_in,                            // Matrix store request
     input  bit reg_disp_req_in,                             // Dispatcher matrix read request

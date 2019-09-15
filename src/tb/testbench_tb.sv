@@ -1,7 +1,15 @@
 // testbench_tb.sv
+// ----------------------------------------------------------------------------
+//   Author: Alex Olson
+//     Date: August 2019
+//
+// Desciption:
+// ----------------------------------------------------------------------------
+// Testbench that instantiates the other components of the OOP testbench.
+//
+// ----------------------------------------------------------------------------
 
 `include "src/tb/driver_tb.sv"
-`include "src/tb/coverage_tb.sv"
 `include "src/tb/scoreboard_tb.sv"
 `include "src/tb/checker_tb.sv"
 
@@ -11,22 +19,19 @@ import testbench_utilities::*;
 
 class testbench_tb;
 
-    virtual mpu_bfm bfm;
+    virtual mpu_bfm bfm;                                // Virtual BFM interface
+    driver_tb driver_h;                                 // Testbench driver
+    scoreboard_tb scoreboard_h;                         // Testbench scoreboard
+    checker_tb checker_h;                               // Testbench checker
+    mailbox #(mpu_data_sp) driver2checker;              // Top-level driver2checker mailbox
+    mailbox checker2scoreboard;                         // Top-level checker2scoreboard mailbox
 
-    // Testbench components
-    driver_tb driver_h;
-    coverage_tb coverage_h;
-    scoreboard_tb scoreboard_h;
-    checker_tb checker_h;
-
-    // Mailboxes
-    mailbox #(mpu_data_sp) driver2checker;
-    mailbox checker2scoreboard;
-
+    // Object instantiation
     function new (virtual mpu_bfm b);
         this.bfm = b;
     endfunction : new
 
+    // Testbench execution
     task execute();
         display_message("Beginning Top-Level Testbench");
         $display("\n");
@@ -36,7 +41,6 @@ class testbench_tb;
 
         // Instantiate testbench pieces
         this.driver_h = new(bfm);
-        this.coverage_h = new(bfm);
         this.scoreboard_h = new(bfm);
         this.checker_h = new(bfm);
         

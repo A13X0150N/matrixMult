@@ -1,28 +1,30 @@
 // fpu_fma.sv
-// IEEE-754 floating point Fused Multiply Accumulate
+// ----------------------------------------------------------------------------
+//   Author: Alex Olson
+//     Date: July 2019
 //
-//                       Matrix B flows down  and up
-//                               |                 ^
-//                               |                 |
-//   Matrix A flows right --->   v                 |
-//               and left <---
+// Desciption:
+// ----------------------------------------------------------------------------
+// Fused-Multiply Accumulate core designed to connect to 4 neighbors within a
+// hypercube. The answer (accumulator) is output when the internal accumulation
+// count reaches the size of the matrix (N).
+//
 // 
-//                3x3 Grid                      Single FMA unit
-//         FMA ---- FMA ---- FMA                      Up
-//          | \      | \      | \                     |
-//          |  ans   |  ans   |  ans                  v
-//         FMA ---- FMA ---- FMA           Left ---> FMA ---> Right
-//          | \      | \      | \                     | \
-//          |  ans   |  ans   |  ans                  v  ans
-//         FMA ---- FMA ---- FMA                     Down
-//            \        \        \
-//             ans      ans      ans
-//     
+//       Single FMA unit
+//              Up
+//              |
+//              v
+//   Left ---> FMA ---> Right
+//              | \
+//              v  ans
+//             Down
+//
+// ----------------------------------------------------------------------------
 
 import global_defs::*;
 import mpu_data_types::*;
 
-module fma
+module fpu_fma
 (
     // Control Signals
     input           clk,                // Clock
@@ -51,15 +53,15 @@ module fma
     output bit      error_out           // Signal error detection output
 );
 
-    bit [NBITS:0] count;
-    bit error_in;
-    bit error_generated;
-    bit busy;
-    float_sp float_0;          
-    float_sp float_1;                   //  1)   product = float_0 * float_1
-    internal_float_sp accum;            //  2)   accum = accum + product
-    internal_float_sp product;
-    fma_state_e state, next_state;
+    bit [NBITS:0] count;                // Internal count of when to output accumulator
+    bit error_in;                       // Detect a faulty input
+    bit error_generated;                // Detect if any arithmetic produced an error
+    bit busy;                           // Current state of the FMA unit
+    float_sp float_0;                   // Floating point multiplier
+    float_sp float_1;                   // Floating point multiplicand
+    internal_float_sp accum;            // Persistent accumulator, cleared after count maxes out
+    internal_float_sp product;          // Temporary product to go into accumulator
+    fma_state_e state, next_state;      // FMA states
 
     // Broadcast busy state to neighbors
     assign busy_out = busy;
@@ -68,9 +70,10 @@ module fma
     assign error_in = ((float_0_in.mantissa && !float_0_in.exponent) || float_0_in.exponent == '1) ||
                       ((float_1_in.mantissa && !float_1_in.exponent) || float_1_in.exponent == '1);
 
-    assign error_generated = ((float_0_in != POS_ONE_32BIT) && (float_0_in != NEG_ONE_32BIT)) &&
-                             ((float_1_in != POS_ONE_32BIT) && (float_1_in != NEG_ONE_32BIT)) &&
-                             (($signed(product.exponent) > MAX_EXP) || ($signed(product.exponent) < MIN_EXP));
+    // TODO: come back and work on error detection, it is currently locking the cluster when one happens
+    assign error_generated = FALSE; //((float_0_in != POS_ONE_32BIT) && (float_0_in != NEG_ONE_32BIT)) &&
+                             //((float_1_in != POS_ONE_32BIT) && (float_1_in != NEG_ONE_32BIT)) &&
+                             //(($signed(product.exponent) > MAX_EXP) || ($signed(product.exponent) < MIN_EXP));
 
     // State machine driver
     always_ff @(posedge clk) begin
@@ -243,25 +246,23 @@ module fma
                     float_0 <= float_0;
                     float_1 <= float_1;
                     accum <= accum;
-                    // Detect multiplication by zero shortcut
+                    product.sign <= float_0.sign ^ float_1.sign;
+                    // Detect multiplication shortcuts
                     if ((!float_0.exponent && !float_0.mantissa) || (!float_1.exponent && !float_1.mantissa)) begin
-                        product <= '0;
+                        product.exponent <= '0;
+                        product.mantissa <= '0;
                     end
-                    // Detect float_0 multiplication by 1 shortcut
-                    else if ((float_0 == POS_ONE_32BIT) || (float_0 == NEG_ONE_32BIT)) begin
-                        product.sign <= float_1.sign;
+                    // TODO: further test multiply by one shortcuts before implementing
+                    /*else if ((float_0 == POS_ONE_32BIT) || (float_0 == NEG_ONE_32BIT)) begin
                         product.exponent <= float_1.exponent;
-                        product.mantissa <= (float_1.mantissa | (1<<MANBITS)) << MANBITS; 
+                        product.mantissa <= float_1.mantissa | (1<<MANBITS);
                     end
-                    // Detect float_1 multiplication by 1 shortcut
                     else if ((float_1 == POS_ONE_32BIT) || (float_1 == NEG_ONE_32BIT)) begin
-                        product.sign <= float_0.sign;
                         product.exponent <= float_0.exponent;
-                        product.mantissa <= (float_0.mantissa | (1<<MANBITS)) << MANBITS; 
-                    end
+                        product.mantissa <= float_0.mantissa | (1<<MANBITS);
+                    end*/
                     // Standard multiplication
                     else begin
-                        product.sign <= float_0.sign ^ float_1.sign;
                         product.exponent <= ($signed(float_0.exponent)-EXP_OFFSET) + ($signed(float_1.exponent)-EXP_OFFSET) + EXP_OFFSET;
                         product.mantissa <= (float_0.mantissa | (1<<MANBITS)) * (float_1.mantissa | (1<<MANBITS));
                     end
@@ -421,5 +422,4 @@ module fma
         end
     end
 
-endmodule : fma
-
+endmodule : fpu_fma
