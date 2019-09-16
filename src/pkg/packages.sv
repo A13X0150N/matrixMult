@@ -177,20 +177,19 @@ package testbench_utilities;
     import mpu_data_types::mpu_data_sp;
     import mpu_data_types::float_sp;
 
-    // Clock Controller
-    parameter CLOCK_PERIOD = 10;
-    parameter MAX_CYCLES = 500;
-
-    parameter M_MEM = 3;                        // Testbench input matrix rows     MUST BE LESS THAN M
-    parameter N_MEM = 3;                        // Testbench input matrix columns  MUST BE LESS THAN N
+    parameter CLOCK_PERIOD = 10;                // Clock Perid
+    parameter MAX_CYCLES = 500;                 // Maximum clock cycles
+    parameter M_MEM = 3;                        // Testbench input matrix rows     MUST BE <=M
+    parameter N_MEM = 3;                        // Testbench input matrix columns  MUST BE <=N
     parameter NUM_ELEMENTS = M_MEM * N_MEM;     // Number of input elements per matrix for testbench
-
+    parameter BIG_FLOAT_32 = 32'h7f7fffff;      // Very large number to force overflow
+    parameter SMALL_FLOAT_32 = 32'h00800000;    // Very small number to force underflow
     parameter MAX_ERROR = 10.0;                 // Maximux tolerated error accumulated across a matrix
-    parameter NUM_TESTS = 100;                  // Scalable number of tests to perform
+    parameter NUM_TESTS = 500000;               // Scalable number of tests to perform
 
     // Matrix generator, incremental order
     task automatic generate_matrix(input shortreal seed, input shortreal scale, ref mpu_data_sp genmat);
-        for (int i = 0; i < NUM_ELEMENTS; i = i + 1) begin
+        for (int i = 0; i < NUM_ELEMENTS; ++i) begin
             genmat.matrix_in = {(genmat.matrix_in), $shortrealtobits(seed + i * scale)};
         end
     endtask : generate_matrix

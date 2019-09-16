@@ -22,7 +22,6 @@ class driver_tb;
     mpu_data_sp data_in, data_out;                  // Interface packets
     int i, num;                                     // Loop counters
     shortreal ii;                                   // Float iteration
-    real random1;                                   // Random float variable
 
     // Object instantiation
     function new (virtual mpu_bfm b);
@@ -119,13 +118,38 @@ class driver_tb;
         multiply(3, 0, 7);
         store_registers();
 
+        ////////////////////////////////////////
+        // Check inverse multiplication cases //
+        ////////////////////////////////////////
+        data_in.matrix_in = {$shortrealtobits(1.0), $shortrealtobits(2.0), $shortrealtobits(3.0),
+                             $shortrealtobits(0.0), $shortrealtobits(1.0), $shortrealtobits(4.0),
+                             $shortrealtobits(5.0), $shortrealtobits(6.0), $shortrealtobits(0.0)};
+        load(0);
+        data_in.matrix_in = {$shortrealtobits(-24.0), $shortrealtobits(18.0), $shortrealtobits(5.0),
+                             $shortrealtobits(20.0), $shortrealtobits(-15.0), $shortrealtobits(-4.0),
+                             $shortrealtobits(-5.0), $shortrealtobits(4.0), $shortrealtobits(1.0)};
+        load(1);
+        data_in.matrix_in = {$shortrealtobits(0.0), $shortrealtobits(1.0), $shortrealtobits(0.0),
+                             $shortrealtobits(1.0), $shortrealtobits(0.0), $shortrealtobits(1.0),
+                             $shortrealtobits(1.0), $shortrealtobits(1.0), $shortrealtobits(0.0)};
+        load(2);
+        data_in.matrix_in = {$shortrealtobits(-1.0), $shortrealtobits(0.0), $shortrealtobits(1.0),
+                             $shortrealtobits(1.0), $shortrealtobits(0.0), $shortrealtobits(1.0),
+                             $shortrealtobits(1.0), $shortrealtobits(1.0), $shortrealtobits(-1.0)};
+        load(3);
+        multiply(0, 1, 4);
+        multiply(1, 0, 5);
+        multiply(2, 3, 6);
+        multiply(3, 2, 7);
+        store_registers();
+
         ///////////////////////////////
         // Run the bulk of the tests //
         ///////////////////////////////
-        for (num = 0; num < NUM_TESTS; ++num) begin
-            generate_matrix(random()*-1.0, random()*-1.0, data_in);
+        for (num = NUM_TESTS; num; --num) begin
+            generate_matrix(random()*-1.0/num, random()*-1.0, data_in);
             load(0);
-            generate_matrix_reverse(0.001, random(), data_in);
+            generate_matrix_reverse(0.001, random()/num, data_in);
             load(1);
             generate_matrix(0.1, random()*0.07, data_in);
             load(2);
@@ -137,7 +161,46 @@ class driver_tb;
             store_registers();
         end
 
-        // Send out a NOP before finishing tests
+        //////////////////////////////////////////
+        // Run back-to-back multiply operations //
+        //////////////////////////////////////////
+        generate_matrix(1.0, 1.0, data_in);
+        load(0);
+        generate_matrix(1.0, 0.0, data_in);             // Uniform +1.0 matrix
+        load(1);
+        for (num = NUM_TESTS; num; --num) begin
+            multiply(0, 1, 2);
+        end
+        store(2);
+
+        ///////////////////////////////////////////////////////
+        // Check multiplication overflow and underflow cases //
+        ///////////////////////////////////////////////////////
+        data_in.matrix_in = {BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32,
+                             BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32,
+                             BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32};
+        load(0);
+        data_in.matrix_in = {BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32,
+                             BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32,
+                             BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32};
+        load(1);
+        data_in.matrix_in = {SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32,
+                             SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32,
+                             SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32};
+        load(2);
+        data_in.matrix_in = {SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32,
+                             SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32,
+                             SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32};
+        load(3);
+        multiply(0, 1, 4);      // Overflow
+        multiply(1, 0, 5);      // Overflow
+        multiply(2, 3, 6);      // Underflow
+        multiply(3, 2, 7);      // Underflow
+        store_registers();
+
+        //////////////////////
+        // Finish Testbench //
+        //////////////////////
         nop();
         $finish;
     endtask : execute
@@ -153,14 +216,14 @@ class driver_tb;
         this.driver2checker.put(this.data_in);
     endtask : init
 
-    // Send a NOP into the design and reference model
+    // Send a nop into the design and reference model
     task automatic nop();
         this.data_in.op = MPU_NOP;
         this.bfm.send_op(this.data_in, this.data_out);
         this.driver2checker.put(this.data_in);
     endtask : nop
 
-    // LOAD a matrix into an address
+    // Load a matrix into an address
     task automatic load(input int src_addr_0);
         this.data_in.op = MPU_LOAD;
         this.data_in.src_addr_0 = src_addr_0;
@@ -168,7 +231,7 @@ class driver_tb;
         this.driver2checker.put(this.data_in);
     endtask : load
 
-    // STORE a matrix from an address
+    // Store a matrix from an address
     task automatic store(input int src_addr_0);
         this.data_in.op = MPU_STORE;
         this.data_in.src_addr_0 = src_addr_0;
@@ -177,7 +240,7 @@ class driver_tb;
         this.driver2checker.put(this.data_in);
     endtask : store
 
-    // Multilply the matrices from two addresses and put the result in a third address
+    // Multiply the matrices from two addresses and put the result in a third address
     task automatic multiply(input int src_addr_0, input int src_addr_1, input int dest_addr);
         this.data_in.op = MPU_MULT;
         this.data_in.src_addr_0 = src_addr_0;
