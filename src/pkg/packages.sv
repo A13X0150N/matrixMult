@@ -164,6 +164,24 @@ package mpu_data_types;
         float_sp [0:8] matrix_out;
     } mpu_data_sp;
 
+    typedef struct packed {
+        float_sp [0:8] matrix;
+        bit [MBITS:0] m;
+        bit [NBITS:0] n;
+        bit [MATRIX_REG_BITS:0] addr0;
+    } mpu_load_sp;
+
+    typedef struct packed {
+        float_sp [0:8] matrix;    
+        bit [MATRIX_REG_BITS:0] addr0;
+    } mpu_store_sp;
+
+    typedef struct packed {
+        bit [MATRIX_REG_BITS:0] addr0;
+        bit [MATRIX_REG_BITS:0] addr1;
+        bit [MATRIX_REG_BITS:0] dest;
+    } mpu_multiply_sp;
+
 endpackage : mpu_data_types
 
 
@@ -175,6 +193,9 @@ package testbench_utilities;
     import global_defs::M;
     import global_defs::N;
     import mpu_data_types::mpu_data_sp;
+    import mpu_data_types::mpu_load_sp;
+    import mpu_data_types::mpu_store_sp;
+    import mpu_data_types::mpu_multiply_sp;
     import mpu_data_types::float_sp;
 
     parameter CLOCK_PERIOD = 10;                // Clock Perid
@@ -184,20 +205,20 @@ package testbench_utilities;
     parameter NUM_ELEMENTS = M_MEM * N_MEM;     // Number of input elements per matrix for testbench
     parameter BIG_FLOAT_32 = 32'h7f7fffff;      // Very large number to force overflow
     parameter SMALL_FLOAT_32 = 32'h00800000;    // Very small number to force underflow
-    parameter MAX_ERROR = 10.0;                 // Maximux tolerated error accumulated across a matrix
-    parameter NUM_TESTS = 500000;               // Scalable number of tests to perform
+    parameter MAX_ERROR = 10.0;                 // Maximum tolerated error accumulated across a matrix
+    parameter NUM_TESTS = 10000;                // Scalable number of tests to perform
 
     // Matrix generator, incremental order
-    task automatic generate_matrix(input shortreal seed, input shortreal scale, ref mpu_data_sp genmat);
+    task automatic generate_matrix(input shortreal seed, input shortreal scale, ref mpu_load_sp genmat);
         for (int i = 0; i < NUM_ELEMENTS; ++i) begin
-            genmat.matrix_in = {(genmat.matrix_in), $shortrealtobits(seed + i * scale)};
+            genmat.matrix = {(genmat.matrix), $shortrealtobits(seed + i * scale)};
         end
     endtask : generate_matrix
 
     // Matrix generator, decremental order
-    task automatic generate_matrix_reverse(input shortreal seed, input shortreal scale, ref mpu_data_sp genmat);
+    task automatic generate_matrix_reverse(input shortreal seed, input shortreal scale, ref mpu_load_sp genmat);
         for (int i = NUM_ELEMENTS; i; --i) begin
-            genmat.matrix_in = {(genmat.matrix_in), $shortrealtobits(seed + i * scale)};
+            genmat.matrix = {(genmat.matrix), $shortrealtobits(seed + i * scale)};
         end
     endtask : generate_matrix_reverse
 

@@ -40,7 +40,6 @@ module mpu_collector (
 collector_state_e state, next_state;                // Collector state
 bit write_to_memory;                                // Signal to track when to start the memory write
 bit write_finished;                                 // Signal finished writing to memory
-bit active_write;
 bit [MBITS:0] dest_i;                               // Destination i location
 bit [MBITS:0] dest_i_delay;                         // Destination i location delay
 bit [NBITS:0] dest_j;                               // Destination j location

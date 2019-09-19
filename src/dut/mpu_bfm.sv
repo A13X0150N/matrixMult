@@ -153,65 +153,83 @@ interface mpu_bfm(input clk, rst);
         mem_n_load_size <= '0;
     endtask
 
-    // Send an operation into an MPU
-    task send_op(input mpu_data_sp req, output mpu_data_sp rsp); // pragma tbx xtf
+    // Burn a clock cycle
+    task nop(); // pragma tbx xtf
         @(posedge clk); // For a task to be synthesizable for veloce, it must be a clocked task
-        case(req.op)
-            
-            MPU_NOP: begin
+    endtask : nop
+
+    // Load a matrix into the register
+    task load(input mpu_load_sp data); // pragma tbx xtf
+        @(posedge clk); // For a task to be synthesizable for veloce, it must be a clocked task
+        idx <= '0;
+        mem_m_load_size <= data.m;
+        mem_n_load_size <= data.n;
+        mem_load_addr <= data.addr0;
+        mem_load_element <= data.matrix[idx];
+        load_req <= TRUE;
+        while (!mem_load_ack) begin
+            @(posedge clk);
+        end;
+        do begin
+            mem_load_element <= data.matrix[idx];
+            idx <= idx + 1;
+            @(posedge clk);
+        end while (mem_load_ack);
+        load_req <= FALSE;
+    endtask : load
+
+    // Store a matrix from the register out to memory
+    task store(input mpu_store_sp data_in, output mpu_store_sp data_out); // pragma tbx xtf
+        @(posedge clk); // For a task to be synthesizable for veloce, it must be a clocked task
+        idx <= '0;
+        mem_store_addr <= data_in.addr0;
+        store_req <= TRUE;
+        while (!mem_store_en) begin
+            @(posedge clk);
+        end
+        do begin
+            @(posedge clk);
+            data_out.matrix[idx] <= mem_store_element;
+            idx <= idx + 1;
+        end while (mem_store_en);
+        @(posedge clk);
+        store_req <= FALSE;
+    endtask : store
+
+    task multiply(input mpu_multiply_sp data); // pragma tbx xtf
+        @(posedge clk); // For a task to be synthesizable for veloce, it must be a clocked task
+        src_addr_0 <= data.addr0;
+        src_addr_1 <= data.addr1;
+        dest_addr <= data.dest;
+        start_mult <= TRUE;
+        while (!disp_ack) begin
+            @(posedge clk);
+        end
+        start_mult <= FALSE;
+        while (!collector_finished) begin
+            @(posedge clk);
+        end
+    endtask : multiply
+
+    task repeat_mult(input bit [MATRIX_REG_BITS:0] addr0,
+                     input bit [MATRIX_REG_BITS:0] addr1,
+                     input bit [MATRIX_REG_BITS:0] dest,
+                     input int iterations); // pragma tbx xtf
+        @(posedge clk); // For a task to be synthesizable for veloce, it must be a clocked task
+        src_addr_0 <= addr0;
+        src_addr_1 <= addr1;
+        dest_addr <= dest;
+        repeat (iterations) begin
+            @(posedge clk);
+            start_mult <= TRUE;
+            while (!disp_ack) begin
                 @(posedge clk);
             end
-
-            MPU_LOAD: begin 
-                idx <= '0;
-                mem_m_load_size <= req.m_in;
-                mem_n_load_size <= req.n_in;
-                mem_load_addr <= req.src_addr_0;
-                mem_load_element <= req.matrix_in[idx];
-                load_req <= TRUE;
-                while (!mem_load_ack) begin
-                    @(posedge clk);
-                end;
-                do begin
-                    mem_load_element <= req.matrix_in[idx];
-                    idx <= idx + 1;
-                    @(posedge clk);
-                end while (mem_load_ack);
-                load_req <= FALSE;
-            end
-
-            MPU_STORE: begin
-                idx <= '0;
-                mem_store_addr <= req.src_addr_0;
-                store_req <= TRUE;
-                while (!mem_store_en) begin
-                    @(posedge clk);
-                end
-                do begin
-                    @(posedge clk);
-                    rsp.matrix_out[idx] <= mem_store_element;
-                    idx <= idx + 1;
-                end while (mem_store_en);
-                @(posedge clk);
-                store_req <= FALSE;
-            end
-
-            MPU_MULT: begin
-                src_addr_0 <= req.src_addr_0;
-                src_addr_1 <= req.src_addr_1;
-                dest_addr <= req.dest_addr;
-                start_mult <= TRUE;
-                while (!disp_ack) begin
-                    @(posedge clk);
-                end
-                start_mult <= FALSE;
-                while (!collector_finished) begin
-                    @(posedge clk);
-                end
+            start_mult <= FALSE;
+            while (!collector_finished) begin
                 @(posedge clk);
             end
-
-        endcase
-    endtask : send_op
+        end
+    endtask : repeat_mult
 
 endinterface : mpu_bfm

@@ -56,8 +56,8 @@ vbuild:
 	velanalyze src/dut/mpu_controller.sv		# Analyze the controller
 	velanalyze src/dut/mpu_dispatcher.sv		# Analyze the dispatcher
 	velanalyze src/dut/mpu_collector.sv			# Analyze the collector
-	velcomp -top mpu_top  						# Synthesize!
-	velhvl -sim veloce
+	velcomp -top mpu_top   						# Synthesize!
+	velhvl -sim veloce -enable_profile_report
 
 # Run a quick experiment on the side
 experiment:

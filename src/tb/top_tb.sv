@@ -21,12 +21,16 @@ module top_tb;
 
     // Object instantiation
     initial begin
+        $display("\n\t * START TIME: ");
+        $system("date");
         testbench_h = new(mpu_top.mpu_bfm);
         testbench_h.execute();
     end
 
     final begin
         display_message("End of Testbench");
+        $display("\n\t * STOP TIME: ");
+        $system("date");
         //display_message("Design Registers");
         //simulation_register_dump(mpu_top.mpu_register_file.matrix_register_array);
         //$display("\n\n");
