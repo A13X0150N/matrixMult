@@ -2,6 +2,9 @@
 # Always make sure that everything works fine in puresim before changing to veloce
 # Mode is compiled for puresim for simulation or veloce for emulation
 
+help:
+	@echo -e " \n make sim: clean work build run \n make emu: clean work vbuild run \n"
+
 # make sim runs all in the 'puresim' environment
 sim: clean work build run
 

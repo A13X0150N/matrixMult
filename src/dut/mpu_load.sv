@@ -151,32 +151,32 @@ module mpu_load
     always_comb begin : matrix_load_output
         if (rst) begin
             mem_load_ack_out <= FALSE;
-            reg_load_req_out  <= FALSE;      
+            reg_load_req_out <= FALSE;      
         end
         else begin
             unique case (state)
                 LOAD_IDLE: begin
                     mem_load_ack_out <= FALSE;
-                    reg_load_req_out  <= FALSE;     
+                    reg_load_req_out <= FALSE;     
                 end
                 LOAD_REQUEST: begin
                     if (load_ready_in) begin
                         mem_load_ack_out <= TRUE;
-                        reg_load_req_out  <= FALSE;
+                        reg_load_req_out <= FALSE;
                     end
                     else begin
                         mem_load_ack_out <= FALSE;
-                        reg_load_req_out  <= FALSE;
+                        reg_load_req_out <= FALSE;
                     end
                 end
                 LOAD_MATRIX: begin
                     if (!load_finished) begin
                         mem_load_ack_out <= TRUE;
-                        reg_load_req_out  <= TRUE;
+                        reg_load_req_out <= TRUE;
                     end
                     else begin
                         mem_load_ack_out <= FALSE;
-                        reg_load_req_out  <= TRUE;
+                        reg_load_req_out <= TRUE;
                     end
                 end
             endcase

@@ -16,16 +16,16 @@ package global_defs;
     //////////////////////////// * * *  ADJUSTABLE TOP-LEVEL PARAMETERS  * * * ////////////////////////////
 
     parameter FP = 32;                      // Floating point bit selection
-    parameter M = 3;                        // Maximum register row size
-    parameter N = 3;                        // Maximum register column size
+    parameter M = 6;                        // Maximum register row size
+    parameter N = 6;                        // Maximum register column size
     parameter MATRIX_REGISTERS = 8;         // Size of matrix register file
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // Single-precision floating point
     //if (FP == 32) begin
-        parameter MIN_EXP = -126;
-        parameter MAX_EXP = 127;
+        parameter MIN_EXP = -127;
+        parameter MAX_EXP = 128;
         parameter EXP_OFFSET = 127;
         parameter EXPBITS = 8;
         parameter MANBITS = 23;
@@ -62,6 +62,8 @@ endpackage : global_defs
 // MPU BFM interface definitions
 package mpu_data_types;
     import global_defs::FPBITS;
+    import global_defs::M;
+    import global_defs::N;
     import global_defs::MBITS;
     import global_defs::NBITS;
     import global_defs::MATRIX_REG_BITS;
@@ -145,7 +147,7 @@ package mpu_data_types;
     // Internal floating point data type
     typedef struct packed {
         bit sign;
-        bit [EXPBITS-1:0]   exponent;
+        bit [EXPBITS-1:0] exponent;
         bit [2*MANBITS+3:0] mantissa;
     } internal_float_sp;
 
@@ -153,7 +155,7 @@ package mpu_data_types;
     typedef struct packed {
         // Request fields
         mpu_instruction_e op;
-        float_sp [0:8] matrix_in;
+        float_sp [0:M*N-1] matrix_in;
         bit [MBITS:0] m_in;
         bit [NBITS:0] n_in;
         bit [MATRIX_REG_BITS:0] src_addr_0;
@@ -161,18 +163,18 @@ package mpu_data_types;
         bit [MATRIX_REG_BITS:0] dest_addr;
       
         // Response fields
-        float_sp [0:8] matrix_out;
+        float_sp [0:M*N-1] matrix_out;
     } mpu_data_sp;
 
     typedef struct packed {
-        float_sp [0:8] matrix;
+        float_sp [0:M*N-1] matrix;
         bit [MBITS:0] m;
         bit [NBITS:0] n;
         bit [MATRIX_REG_BITS:0] addr0;
     } mpu_load_sp;
 
     typedef struct packed {
-        float_sp [0:8] matrix;    
+        float_sp [0:M*N-1] matrix;    
         bit [MATRIX_REG_BITS:0] addr0;
     } mpu_store_sp;
 
@@ -199,14 +201,14 @@ package testbench_utilities;
     import mpu_data_types::float_sp;
 
     parameter CLOCK_PERIOD = 10;                // Clock Perid
-    parameter MAX_CYCLES = 500;                 // Maximum clock cycles
-    parameter M_MEM = 3;                        // Testbench input matrix rows     MUST BE <=M
-    parameter N_MEM = 3;                        // Testbench input matrix columns  MUST BE <=N
+    parameter MAX_CYCLES = 1000000;             // Maximum clock cycles
+    parameter M_MEM = 6;                        // Testbench input matrix rows     MUST BE <=M
+    parameter N_MEM = 6;                        // Testbench input matrix columns  MUST BE <=N
     parameter NUM_ELEMENTS = M_MEM * N_MEM;     // Number of input elements per matrix for testbench
     parameter BIG_FLOAT_32 = 32'h7f7fffff;      // Very large number to force overflow
     parameter SMALL_FLOAT_32 = 32'h00800000;    // Very small number to force underflow
     parameter MAX_ERROR = 10.0;                 // Maximum tolerated error accumulated across a matrix
-    parameter NUM_TESTS = 10000;                // Scalable number of tests to perform
+    parameter NUM_TESTS = 1000;                 // Scalable number of tests to perform
 
     // Matrix generator, incremental order
     task automatic generate_matrix(input shortreal seed, input shortreal scale, ref mpu_load_sp genmat);
@@ -245,6 +247,45 @@ package testbench_utilities;
                         $bitstoshortreal(matrix[7]),
                         $bitstoshortreal(matrix[8]));
         end
+        else if (NUM_ELEMENTS == 36) begin
+            $display("\t6x6 MATRIX REGISTER\n\t %f\t%f\t%f\t%f\t%f\t%f \n\t %f\t%f\t%f\t%f\t%f\t%f \n\t %f\t%f\t%f\t%f\t%f\t%f \n\t %f\t%f\t%f\t%f\t%f\t%f \n\t %f\t%f\t%f\t%f\t%f\t%f \n\t %f\t%f\t%f\t%f\t%f\t%f \n", 
+                        $bitstoshortreal(matrix[0]),
+                        $bitstoshortreal(matrix[1]),
+                        $bitstoshortreal(matrix[2]),
+                        $bitstoshortreal(matrix[3]),
+                        $bitstoshortreal(matrix[4]),
+                        $bitstoshortreal(matrix[5]),
+                        $bitstoshortreal(matrix[6]),
+                        $bitstoshortreal(matrix[7]),
+                        $bitstoshortreal(matrix[8]),
+                        $bitstoshortreal(matrix[9]),
+                        $bitstoshortreal(matrix[10]),
+                        $bitstoshortreal(matrix[11]),
+                        $bitstoshortreal(matrix[12]),
+                        $bitstoshortreal(matrix[13]),
+                        $bitstoshortreal(matrix[14]),
+                        $bitstoshortreal(matrix[15]),
+                        $bitstoshortreal(matrix[16]),
+                        $bitstoshortreal(matrix[17]),
+                        $bitstoshortreal(matrix[18]),
+                        $bitstoshortreal(matrix[19]),
+                        $bitstoshortreal(matrix[20]),
+                        $bitstoshortreal(matrix[21]),
+                        $bitstoshortreal(matrix[22]),
+                        $bitstoshortreal(matrix[23]),
+                        $bitstoshortreal(matrix[24]),
+                        $bitstoshortreal(matrix[25]),
+                        $bitstoshortreal(matrix[26]),
+                        $bitstoshortreal(matrix[27]),
+                        $bitstoshortreal(matrix[28]),
+                        $bitstoshortreal(matrix[29]),
+                        $bitstoshortreal(matrix[30]),
+                        $bitstoshortreal(matrix[31]),
+                        $bitstoshortreal(matrix[32]),
+                        $bitstoshortreal(matrix[33]),
+                        $bitstoshortreal(matrix[34]),
+                        $bitstoshortreal(matrix[35]));
+        end
     endtask : show_matrix
 
     // Display a message with a border
@@ -265,86 +306,302 @@ package testbench_utilities;
     // Internal Register Dump   SIMULATION ONLY
     task simulation_register_dump(float_sp matrix_register_array [MATRIX_REGISTERS][M][N]);
         display_message("REGISTER DUMP");
-        $display("\t3x3 MATRIX REGISTER[0]\n\t %f\t%f\t%f \n\t %f\t%f\t%f \n\t %f\t%f\t%f \n", 
+        $display("\t6x6 MATRIX REGISTER[0]\n\t %f\t%f\t%f\t%f\t%f\t%f \n\t %f\t%f\t%f\t%f\t%f\t%f \n\t %f\t%f\t%f\t%f\t%f\t%f \n\t %f\t%f\t%f\t%f\t%f\t%f \n\t %f\t%f\t%f\t%f\t%f\t%f \n\t %f\t%f\t%f\t%f\t%f\t%f \n",
                     $bitstoshortreal(matrix_register_array[0][0][0]),
                     $bitstoshortreal(matrix_register_array[0][0][1]),
                     $bitstoshortreal(matrix_register_array[0][0][2]),
+                    $bitstoshortreal(matrix_register_array[0][0][3]),
+                    $bitstoshortreal(matrix_register_array[0][0][4]),
+                    $bitstoshortreal(matrix_register_array[0][0][5]),
                     $bitstoshortreal(matrix_register_array[0][1][0]),
                     $bitstoshortreal(matrix_register_array[0][1][1]),
                     $bitstoshortreal(matrix_register_array[0][1][2]),
+                    $bitstoshortreal(matrix_register_array[0][1][3]),
+                    $bitstoshortreal(matrix_register_array[0][1][4]),
+                    $bitstoshortreal(matrix_register_array[0][1][5]),
                     $bitstoshortreal(matrix_register_array[0][2][0]),
                     $bitstoshortreal(matrix_register_array[0][2][1]),
-                    $bitstoshortreal(matrix_register_array[0][2][2]));
-        $display("\t3x3 MATRIX REGISTER[1]\n\t %f\t%f\t%f \n\t %f\t%f\t%f \n\t %f\t%f\t%f \n", 
+                    $bitstoshortreal(matrix_register_array[0][2][2]),
+                    $bitstoshortreal(matrix_register_array[0][2][3]),
+                    $bitstoshortreal(matrix_register_array[0][2][4]),
+                    $bitstoshortreal(matrix_register_array[0][2][5]),   
+                    $bitstoshortreal(matrix_register_array[0][3][0]),
+                    $bitstoshortreal(matrix_register_array[0][3][1]),
+                    $bitstoshortreal(matrix_register_array[0][3][2]),
+                    $bitstoshortreal(matrix_register_array[0][3][3]),
+                    $bitstoshortreal(matrix_register_array[0][3][4]),
+                    $bitstoshortreal(matrix_register_array[0][3][5]),
+                    $bitstoshortreal(matrix_register_array[0][4][0]),
+                    $bitstoshortreal(matrix_register_array[0][4][1]),
+                    $bitstoshortreal(matrix_register_array[0][4][2]),
+                    $bitstoshortreal(matrix_register_array[0][4][3]),
+                    $bitstoshortreal(matrix_register_array[0][4][4]),
+                    $bitstoshortreal(matrix_register_array[0][4][5]),
+                    $bitstoshortreal(matrix_register_array[0][5][0]),
+                    $bitstoshortreal(matrix_register_array[0][5][1]),
+                    $bitstoshortreal(matrix_register_array[0][5][2]),
+                    $bitstoshortreal(matrix_register_array[0][5][3]),
+                    $bitstoshortreal(matrix_register_array[0][5][4]),
+                    $bitstoshortreal(matrix_register_array[0][5][5]));
+        $display("\t6x6 MATRIX REGISTER[1]\n\t %f\t%f\t%f\t%f\t%f\t%f \n\t %f\t%f\t%f\t%f\t%f\t%f \n\t %f\t%f\t%f\t%f\t%f\t%f \n\t %f\t%f\t%f\t%f\t%f\t%f \n\t %f\t%f\t%f\t%f\t%f\t%f \n\t %f\t%f\t%f\t%f\t%f\t%f \n",
                     $bitstoshortreal(matrix_register_array[1][0][0]),
                     $bitstoshortreal(matrix_register_array[1][0][1]),
                     $bitstoshortreal(matrix_register_array[1][0][2]),
+                    $bitstoshortreal(matrix_register_array[1][0][3]),
+                    $bitstoshortreal(matrix_register_array[1][0][4]),
+                    $bitstoshortreal(matrix_register_array[1][0][5]),
                     $bitstoshortreal(matrix_register_array[1][1][0]),
                     $bitstoshortreal(matrix_register_array[1][1][1]),
                     $bitstoshortreal(matrix_register_array[1][1][2]),
+                    $bitstoshortreal(matrix_register_array[1][1][3]),
+                    $bitstoshortreal(matrix_register_array[1][1][4]),
+                    $bitstoshortreal(matrix_register_array[1][1][5]),
                     $bitstoshortreal(matrix_register_array[1][2][0]),
                     $bitstoshortreal(matrix_register_array[1][2][1]),
-                    $bitstoshortreal(matrix_register_array[1][2][2]));
-        $display("\t3x3 MATRIX REGISTER[2]\n\t %f\t%f\t%f \n\t %f\t%f\t%f \n\t %f\t%f\t%f \n", 
+                    $bitstoshortreal(matrix_register_array[1][2][2]),
+                    $bitstoshortreal(matrix_register_array[1][2][3]),
+                    $bitstoshortreal(matrix_register_array[1][2][4]),
+                    $bitstoshortreal(matrix_register_array[1][2][5]),   
+                    $bitstoshortreal(matrix_register_array[1][3][0]),
+                    $bitstoshortreal(matrix_register_array[1][3][1]),
+                    $bitstoshortreal(matrix_register_array[1][3][2]),
+                    $bitstoshortreal(matrix_register_array[1][3][3]),
+                    $bitstoshortreal(matrix_register_array[1][3][4]),
+                    $bitstoshortreal(matrix_register_array[1][3][5]),
+                    $bitstoshortreal(matrix_register_array[1][4][0]),
+                    $bitstoshortreal(matrix_register_array[1][4][1]),
+                    $bitstoshortreal(matrix_register_array[1][4][2]),
+                    $bitstoshortreal(matrix_register_array[1][4][3]),
+                    $bitstoshortreal(matrix_register_array[1][4][4]),
+                    $bitstoshortreal(matrix_register_array[1][4][5]),
+                    $bitstoshortreal(matrix_register_array[1][5][0]),
+                    $bitstoshortreal(matrix_register_array[1][5][1]),
+                    $bitstoshortreal(matrix_register_array[1][5][2]),
+                    $bitstoshortreal(matrix_register_array[1][5][3]),
+                    $bitstoshortreal(matrix_register_array[1][5][4]),
+                    $bitstoshortreal(matrix_register_array[1][5][5]));
+        $display("\t6x6 MATRIX REGISTER[2]\n\t %f\t%f\t%f\t%f\t%f\t%f \n\t %f\t%f\t%f\t%f\t%f\t%f \n\t %f\t%f\t%f\t%f\t%f\t%f \n\t %f\t%f\t%f\t%f\t%f\t%f \n\t %f\t%f\t%f\t%f\t%f\t%f \n\t %f\t%f\t%f\t%f\t%f\t%f \n",
                     $bitstoshortreal(matrix_register_array[2][0][0]),
                     $bitstoshortreal(matrix_register_array[2][0][1]),
                     $bitstoshortreal(matrix_register_array[2][0][2]),
+                    $bitstoshortreal(matrix_register_array[2][0][3]),
+                    $bitstoshortreal(matrix_register_array[2][0][4]),
+                    $bitstoshortreal(matrix_register_array[2][0][5]),
                     $bitstoshortreal(matrix_register_array[2][1][0]),
                     $bitstoshortreal(matrix_register_array[2][1][1]),
                     $bitstoshortreal(matrix_register_array[2][1][2]),
+                    $bitstoshortreal(matrix_register_array[2][1][3]),
+                    $bitstoshortreal(matrix_register_array[2][1][4]),
+                    $bitstoshortreal(matrix_register_array[2][1][5]),
                     $bitstoshortreal(matrix_register_array[2][2][0]),
                     $bitstoshortreal(matrix_register_array[2][2][1]),
-                    $bitstoshortreal(matrix_register_array[2][2][2]));
-        $display("\t3x3 MATRIX REGISTER[3]\n\t %f\t%f\t%f \n\t %f\t%f\t%f \n\t %f\t%f\t%f \n", 
+                    $bitstoshortreal(matrix_register_array[2][2][2]),
+                    $bitstoshortreal(matrix_register_array[2][2][3]),
+                    $bitstoshortreal(matrix_register_array[2][2][4]),
+                    $bitstoshortreal(matrix_register_array[2][2][5]),   
+                    $bitstoshortreal(matrix_register_array[2][3][0]),
+                    $bitstoshortreal(matrix_register_array[2][3][1]),
+                    $bitstoshortreal(matrix_register_array[2][3][2]),
+                    $bitstoshortreal(matrix_register_array[2][3][3]),
+                    $bitstoshortreal(matrix_register_array[2][3][4]),
+                    $bitstoshortreal(matrix_register_array[2][3][5]),
+                    $bitstoshortreal(matrix_register_array[2][4][0]),
+                    $bitstoshortreal(matrix_register_array[2][4][1]),
+                    $bitstoshortreal(matrix_register_array[2][4][2]),
+                    $bitstoshortreal(matrix_register_array[2][4][3]),
+                    $bitstoshortreal(matrix_register_array[2][4][4]),
+                    $bitstoshortreal(matrix_register_array[2][4][5]),
+                    $bitstoshortreal(matrix_register_array[2][5][0]),
+                    $bitstoshortreal(matrix_register_array[2][5][1]),
+                    $bitstoshortreal(matrix_register_array[2][5][2]),
+                    $bitstoshortreal(matrix_register_array[2][5][3]),
+                    $bitstoshortreal(matrix_register_array[2][5][4]),
+                    $bitstoshortreal(matrix_register_array[2][5][5]));
+        $display("\t6x6 MATRIX REGISTER[3]\n\t %f\t%f\t%f\t%f\t%f\t%f \n\t %f\t%f\t%f\t%f\t%f\t%f \n\t %f\t%f\t%f\t%f\t%f\t%f \n\t %f\t%f\t%f\t%f\t%f\t%f \n\t %f\t%f\t%f\t%f\t%f\t%f \n\t %f\t%f\t%f\t%f\t%f\t%f \n",
                     $bitstoshortreal(matrix_register_array[3][0][0]),
                     $bitstoshortreal(matrix_register_array[3][0][1]),
                     $bitstoshortreal(matrix_register_array[3][0][2]),
+                    $bitstoshortreal(matrix_register_array[3][0][3]),
+                    $bitstoshortreal(matrix_register_array[3][0][4]),
+                    $bitstoshortreal(matrix_register_array[3][0][5]),
                     $bitstoshortreal(matrix_register_array[3][1][0]),
                     $bitstoshortreal(matrix_register_array[3][1][1]),
                     $bitstoshortreal(matrix_register_array[3][1][2]),
+                    $bitstoshortreal(matrix_register_array[3][1][3]),
+                    $bitstoshortreal(matrix_register_array[3][1][4]),
+                    $bitstoshortreal(matrix_register_array[3][1][5]),
                     $bitstoshortreal(matrix_register_array[3][2][0]),
                     $bitstoshortreal(matrix_register_array[3][2][1]),
-                    $bitstoshortreal(matrix_register_array[3][2][2]));
-        $display("\t3x3 MATRIX REGISTER[4]\n\t %f\t%f\t%f \n\t %f\t%f\t%f \n\t %f\t%f\t%f \n", 
+                    $bitstoshortreal(matrix_register_array[3][2][2]),
+                    $bitstoshortreal(matrix_register_array[3][2][3]),
+                    $bitstoshortreal(matrix_register_array[3][2][4]),
+                    $bitstoshortreal(matrix_register_array[3][2][5]),   
+                    $bitstoshortreal(matrix_register_array[3][3][0]),
+                    $bitstoshortreal(matrix_register_array[3][3][1]),
+                    $bitstoshortreal(matrix_register_array[3][3][2]),
+                    $bitstoshortreal(matrix_register_array[3][3][3]),
+                    $bitstoshortreal(matrix_register_array[3][3][4]),
+                    $bitstoshortreal(matrix_register_array[3][3][5]),
+                    $bitstoshortreal(matrix_register_array[3][4][0]),
+                    $bitstoshortreal(matrix_register_array[3][4][1]),
+                    $bitstoshortreal(matrix_register_array[3][4][2]),
+                    $bitstoshortreal(matrix_register_array[3][4][3]),
+                    $bitstoshortreal(matrix_register_array[3][4][4]),
+                    $bitstoshortreal(matrix_register_array[3][4][5]),
+                    $bitstoshortreal(matrix_register_array[3][5][0]),
+                    $bitstoshortreal(matrix_register_array[3][5][1]),
+                    $bitstoshortreal(matrix_register_array[3][5][2]),
+                    $bitstoshortreal(matrix_register_array[3][5][3]),
+                    $bitstoshortreal(matrix_register_array[3][5][4]),
+                    $bitstoshortreal(matrix_register_array[3][5][5]));
+        $display("\t6x6 MATRIX REGISTER[4]\n\t %f\t%f\t%f\t%f\t%f\t%f \n\t %f\t%f\t%f\t%f\t%f\t%f \n\t %f\t%f\t%f\t%f\t%f\t%f \n\t %f\t%f\t%f\t%f\t%f\t%f \n\t %f\t%f\t%f\t%f\t%f\t%f \n\t %f\t%f\t%f\t%f\t%f\t%f \n",
                     $bitstoshortreal(matrix_register_array[4][0][0]),
                     $bitstoshortreal(matrix_register_array[4][0][1]),
                     $bitstoshortreal(matrix_register_array[4][0][2]),
+                    $bitstoshortreal(matrix_register_array[4][0][3]),
+                    $bitstoshortreal(matrix_register_array[4][0][4]),
+                    $bitstoshortreal(matrix_register_array[4][0][5]),
                     $bitstoshortreal(matrix_register_array[4][1][0]),
                     $bitstoshortreal(matrix_register_array[4][1][1]),
                     $bitstoshortreal(matrix_register_array[4][1][2]),
+                    $bitstoshortreal(matrix_register_array[4][1][3]),
+                    $bitstoshortreal(matrix_register_array[4][1][4]),
+                    $bitstoshortreal(matrix_register_array[4][1][5]),
                     $bitstoshortreal(matrix_register_array[4][2][0]),
                     $bitstoshortreal(matrix_register_array[4][2][1]),
-                    $bitstoshortreal(matrix_register_array[4][2][2]));
-        $display("\t3x3 MATRIX REGISTER[5]\n\t %f\t%f\t%f \n\t %f\t%f\t%f \n\t %f\t%f\t%f \n", 
+                    $bitstoshortreal(matrix_register_array[4][2][2]),
+                    $bitstoshortreal(matrix_register_array[4][2][3]),
+                    $bitstoshortreal(matrix_register_array[4][2][4]),
+                    $bitstoshortreal(matrix_register_array[4][2][5]),   
+                    $bitstoshortreal(matrix_register_array[4][3][0]),
+                    $bitstoshortreal(matrix_register_array[4][3][1]),
+                    $bitstoshortreal(matrix_register_array[4][3][2]),
+                    $bitstoshortreal(matrix_register_array[4][3][3]),
+                    $bitstoshortreal(matrix_register_array[4][3][4]),
+                    $bitstoshortreal(matrix_register_array[4][3][5]),
+                    $bitstoshortreal(matrix_register_array[4][4][0]),
+                    $bitstoshortreal(matrix_register_array[4][4][1]),
+                    $bitstoshortreal(matrix_register_array[4][4][2]),
+                    $bitstoshortreal(matrix_register_array[4][4][3]),
+                    $bitstoshortreal(matrix_register_array[4][4][4]),
+                    $bitstoshortreal(matrix_register_array[4][4][5]),
+                    $bitstoshortreal(matrix_register_array[4][5][0]),
+                    $bitstoshortreal(matrix_register_array[4][5][1]),
+                    $bitstoshortreal(matrix_register_array[4][5][2]),
+                    $bitstoshortreal(matrix_register_array[4][5][3]),
+                    $bitstoshortreal(matrix_register_array[4][5][4]),
+                    $bitstoshortreal(matrix_register_array[4][5][5]));
+        $display("\t6x6 MATRIX REGISTER[5]\n\t %f\t%f\t%f\t%f\t%f\t%f \n\t %f\t%f\t%f\t%f\t%f\t%f \n\t %f\t%f\t%f\t%f\t%f\t%f \n\t %f\t%f\t%f\t%f\t%f\t%f \n\t %f\t%f\t%f\t%f\t%f\t%f \n\t %f\t%f\t%f\t%f\t%f\t%f \n",
                     $bitstoshortreal(matrix_register_array[5][0][0]),
                     $bitstoshortreal(matrix_register_array[5][0][1]),
                     $bitstoshortreal(matrix_register_array[5][0][2]),
+                    $bitstoshortreal(matrix_register_array[5][0][3]),
+                    $bitstoshortreal(matrix_register_array[5][0][4]),
+                    $bitstoshortreal(matrix_register_array[5][0][5]),
                     $bitstoshortreal(matrix_register_array[5][1][0]),
                     $bitstoshortreal(matrix_register_array[5][1][1]),
                     $bitstoshortreal(matrix_register_array[5][1][2]),
+                    $bitstoshortreal(matrix_register_array[5][1][3]),
+                    $bitstoshortreal(matrix_register_array[5][1][4]),
+                    $bitstoshortreal(matrix_register_array[5][1][5]),
                     $bitstoshortreal(matrix_register_array[5][2][0]),
                     $bitstoshortreal(matrix_register_array[5][2][1]),
-                    $bitstoshortreal(matrix_register_array[5][2][2]));
-        $display("\t3x3 MATRIX REGISTER[6]\n\t %f\t%f\t%f \n\t %f\t%f\t%f \n\t %f\t%f\t%f \n", 
+                    $bitstoshortreal(matrix_register_array[5][2][2]),
+                    $bitstoshortreal(matrix_register_array[5][2][3]),
+                    $bitstoshortreal(matrix_register_array[5][2][4]),
+                    $bitstoshortreal(matrix_register_array[5][2][5]),   
+                    $bitstoshortreal(matrix_register_array[5][3][0]),
+                    $bitstoshortreal(matrix_register_array[5][3][1]),
+                    $bitstoshortreal(matrix_register_array[5][3][2]),
+                    $bitstoshortreal(matrix_register_array[5][3][3]),
+                    $bitstoshortreal(matrix_register_array[5][3][4]),
+                    $bitstoshortreal(matrix_register_array[5][3][5]),
+                    $bitstoshortreal(matrix_register_array[5][4][0]),
+                    $bitstoshortreal(matrix_register_array[5][4][1]),
+                    $bitstoshortreal(matrix_register_array[5][4][2]),
+                    $bitstoshortreal(matrix_register_array[5][4][3]),
+                    $bitstoshortreal(matrix_register_array[5][4][4]),
+                    $bitstoshortreal(matrix_register_array[5][4][5]),
+                    $bitstoshortreal(matrix_register_array[5][5][0]),
+                    $bitstoshortreal(matrix_register_array[5][5][1]),
+                    $bitstoshortreal(matrix_register_array[5][5][2]),
+                    $bitstoshortreal(matrix_register_array[5][5][3]),
+                    $bitstoshortreal(matrix_register_array[5][5][4]),
+                    $bitstoshortreal(matrix_register_array[5][5][5]));
+        $display("\t6x6 MATRIX REGISTER[6]\n\t %f\t%f\t%f\t%f\t%f\t%f \n\t %f\t%f\t%f\t%f\t%f\t%f \n\t %f\t%f\t%f\t%f\t%f\t%f \n\t %f\t%f\t%f\t%f\t%f\t%f \n\t %f\t%f\t%f\t%f\t%f\t%f \n\t %f\t%f\t%f\t%f\t%f\t%f \n",
                     $bitstoshortreal(matrix_register_array[6][0][0]),
                     $bitstoshortreal(matrix_register_array[6][0][1]),
                     $bitstoshortreal(matrix_register_array[6][0][2]),
+                    $bitstoshortreal(matrix_register_array[6][0][3]),
+                    $bitstoshortreal(matrix_register_array[6][0][4]),
+                    $bitstoshortreal(matrix_register_array[6][0][5]),
                     $bitstoshortreal(matrix_register_array[6][1][0]),
                     $bitstoshortreal(matrix_register_array[6][1][1]),
                     $bitstoshortreal(matrix_register_array[6][1][2]),
+                    $bitstoshortreal(matrix_register_array[6][1][3]),
+                    $bitstoshortreal(matrix_register_array[6][1][4]),
+                    $bitstoshortreal(matrix_register_array[6][1][5]),
                     $bitstoshortreal(matrix_register_array[6][2][0]),
                     $bitstoshortreal(matrix_register_array[6][2][1]),
-                    $bitstoshortreal(matrix_register_array[6][2][2]));
-        $display("\t3x3 MATRIX REGISTER[7]\n\t %f\t%f\t%f \n\t %f\t%f\t%f \n\t %f\t%f\t%f \n", 
+                    $bitstoshortreal(matrix_register_array[6][2][2]),
+                    $bitstoshortreal(matrix_register_array[6][2][3]),
+                    $bitstoshortreal(matrix_register_array[6][2][4]),
+                    $bitstoshortreal(matrix_register_array[6][2][5]),   
+                    $bitstoshortreal(matrix_register_array[6][3][0]),
+                    $bitstoshortreal(matrix_register_array[6][3][1]),
+                    $bitstoshortreal(matrix_register_array[6][3][2]),
+                    $bitstoshortreal(matrix_register_array[6][3][3]),
+                    $bitstoshortreal(matrix_register_array[6][3][4]),
+                    $bitstoshortreal(matrix_register_array[6][3][5]),
+                    $bitstoshortreal(matrix_register_array[6][4][0]),
+                    $bitstoshortreal(matrix_register_array[6][4][1]),
+                    $bitstoshortreal(matrix_register_array[6][4][2]),
+                    $bitstoshortreal(matrix_register_array[6][4][3]),
+                    $bitstoshortreal(matrix_register_array[6][4][4]),
+                    $bitstoshortreal(matrix_register_array[6][4][5]),
+                    $bitstoshortreal(matrix_register_array[6][5][0]),
+                    $bitstoshortreal(matrix_register_array[6][5][1]),
+                    $bitstoshortreal(matrix_register_array[6][5][2]),
+                    $bitstoshortreal(matrix_register_array[6][5][3]),
+                    $bitstoshortreal(matrix_register_array[6][5][4]),
+                    $bitstoshortreal(matrix_register_array[6][5][5]));
+        $display("\t6x6 MATRIX REGISTER[7]\n\t %f\t%f\t%f\t%f\t%f\t%f \n\t %f\t%f\t%f\t%f\t%f\t%f \n\t %f\t%f\t%f\t%f\t%f\t%f \n\t %f\t%f\t%f\t%f\t%f\t%f \n\t %f\t%f\t%f\t%f\t%f\t%f \n\t %f\t%f\t%f\t%f\t%f\t%f \n",
                     $bitstoshortreal(matrix_register_array[7][0][0]),
                     $bitstoshortreal(matrix_register_array[7][0][1]),
                     $bitstoshortreal(matrix_register_array[7][0][2]),
+                    $bitstoshortreal(matrix_register_array[7][0][3]),
+                    $bitstoshortreal(matrix_register_array[7][0][4]),
+                    $bitstoshortreal(matrix_register_array[7][0][5]),
                     $bitstoshortreal(matrix_register_array[7][1][0]),
                     $bitstoshortreal(matrix_register_array[7][1][1]),
                     $bitstoshortreal(matrix_register_array[7][1][2]),
+                    $bitstoshortreal(matrix_register_array[7][1][3]),
+                    $bitstoshortreal(matrix_register_array[7][1][4]),
+                    $bitstoshortreal(matrix_register_array[7][1][5]),
                     $bitstoshortreal(matrix_register_array[7][2][0]),
                     $bitstoshortreal(matrix_register_array[7][2][1]),
-                    $bitstoshortreal(matrix_register_array[7][2][2]));
+                    $bitstoshortreal(matrix_register_array[7][2][2]),
+                    $bitstoshortreal(matrix_register_array[7][2][3]),
+                    $bitstoshortreal(matrix_register_array[7][2][4]),
+                    $bitstoshortreal(matrix_register_array[7][2][5]),   
+                    $bitstoshortreal(matrix_register_array[7][3][0]),
+                    $bitstoshortreal(matrix_register_array[7][3][1]),
+                    $bitstoshortreal(matrix_register_array[7][3][2]),
+                    $bitstoshortreal(matrix_register_array[7][3][3]),
+                    $bitstoshortreal(matrix_register_array[7][3][4]),
+                    $bitstoshortreal(matrix_register_array[7][3][5]),
+                    $bitstoshortreal(matrix_register_array[7][4][0]),
+                    $bitstoshortreal(matrix_register_array[7][4][1]),
+                    $bitstoshortreal(matrix_register_array[7][4][2]),
+                    $bitstoshortreal(matrix_register_array[7][4][3]),
+                    $bitstoshortreal(matrix_register_array[7][4][4]),
+                    $bitstoshortreal(matrix_register_array[7][4][5]),
+                    $bitstoshortreal(matrix_register_array[7][5][0]),
+                    $bitstoshortreal(matrix_register_array[7][5][1]),
+                    $bitstoshortreal(matrix_register_array[7][5][2]),
+                    $bitstoshortreal(matrix_register_array[7][5][3]),
+                    $bitstoshortreal(matrix_register_array[7][5][4]),
+                    $bitstoshortreal(matrix_register_array[7][5][5]));
     endtask : simulation_register_dump
 
 endpackage : testbench_utilities

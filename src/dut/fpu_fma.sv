@@ -71,10 +71,11 @@ module fpu_fma
                       ((float_1_in.mantissa && !float_1_in.exponent) || float_1_in.exponent == '1);
 
     // TODO: come back and work on error detection, it is currently locking the cluster when one happens
-    assign error_generated = FALSE; //((float_0_in != POS_ONE_32BIT) && (float_0_in != NEG_ONE_32BIT)) &&
+    assign error_generated = FALSE;
+    						 //((float_0_in != POS_ONE_32BIT) && (float_0_in != NEG_ONE_32BIT)) &&
                              //((float_1_in != POS_ONE_32BIT) && (float_1_in != NEG_ONE_32BIT)) &&
                              //(($signed(product.exponent) > MAX_EXP) || ($signed(product.exponent) < MIN_EXP));
-
+                             //(($signed(float_out.exponent) > 127) || ($signed(float_out.exponent) < -128));
     // State machine driver
     always_ff @(posedge clk) begin
         state <= rst ? IDLE : next_state;
@@ -262,10 +263,11 @@ module fpu_fma
                         product.mantissa <= float_0.mantissa | (1<<MANBITS);
                     end*/
                     // Standard multiplication
-                    else begin
-                        product.exponent <= ($signed(float_0.exponent)-EXP_OFFSET) + ($signed(float_1.exponent)-EXP_OFFSET) + EXP_OFFSET;
-                        product.mantissa <= (float_0.mantissa | (1<<MANBITS)) * (float_1.mantissa | (1<<MANBITS));
-                    end
+	                else begin
+	                    product.exponent <= ($signed(float_0.exponent)-EXP_OFFSET) + ($signed(float_1.exponent)-EXP_OFFSET) + EXP_OFFSET;
+	                    product.mantissa <= (float_0.mantissa | (1<<MANBITS)) * (float_1.mantissa | (1<<MANBITS));
+	                end
+
                     float_answer_out <= '0;
                     ready_answer_out <= FALSE;
                 end
@@ -281,10 +283,11 @@ module fpu_fma
                     float_1 <= float_1;
                     // If the product is denormalized
                     if (product.mantissa[2*MANBITS+1]) begin
+                        //if (accum.exponent < ($signed(product.exponent)+1)) begin
                         if (accum.exponent < (product.exponent+1)) begin
                             accum.sign <= accum.sign;
-                            accum.exponent <= $signed(accum.exponent) + ((product.exponent+1)-accum.exponent);
-                            accum.mantissa <= (accum.mantissa | (1<<MANBITS)) >> ((product.exponent+1)-accum.exponent);
+                            accum.exponent <= $signed(accum.exponent) + (($signed(product.exponent)+1)-$signed(accum.exponent));
+                            accum.mantissa <= (accum.mantissa | (1<<MANBITS)) >> (($signed(product.exponent)+1)-$signed(accum.exponent));
                             product.sign <= product.sign;
                             product.exponent <= $signed(product.exponent) + 1;
                             product.mantissa <= product.mantissa >> 1;
@@ -292,23 +295,23 @@ module fpu_fma
                         else begin
                             accum <= accum;
                             product.sign <= product.sign;
-                            product.exponent <= $signed(product.exponent) + 1;
-                            product.mantissa <= product.mantissa >> 1;
+                            product.exponent <= $signed(product.exponent) + ($signed(accum.exponent)-($signed(product.exponent)));
+                            product.mantissa <= product.mantissa >> ($signed(accum.exponent)-$signed(product.exponent));
                         end
                     end
                     // Else the product is normalized
                     else begin
                         if (accum.exponent < product.exponent) begin
                             accum.sign <= accum.sign;
-                            accum.exponent <= $signed(accum.exponent) + (product.exponent-accum.exponent);
-                            accum.mantissa <= (accum.mantissa | (1<<MANBITS)) >> (product.exponent-accum.exponent);
+                            accum.exponent <= $signed(accum.exponent) + ($signed(product.exponent)-$signed(accum.exponent));
+                            accum.mantissa <= (accum.mantissa | (1<<MANBITS)) >> ($signed(product.exponent)-$signed(accum.exponent));
                             product <= product;
                         end
                         else begin
                             accum <= accum;
                             product.sign <= product.sign;
-                            product.exponent <= $signed(product.exponent) + (accum.exponent-product.exponent);
-                            product.mantissa <= product.mantissa >> (accum.exponent-product.exponent);
+                            product.exponent <= $signed(product.exponent) + ($signed(accum.exponent)-$signed(product.exponent));
+                            product.mantissa <= product.mantissa >> ($signed(accum.exponent)-$signed(product.exponent));
                         end
                     end
                     float_answer_out <= '0;

@@ -58,14 +58,20 @@ class driver_tb;
         generate_matrix(1.0, 0.0, this.load_data);     // Uniform 1.0 matrix
         this.checker_data.matrix_in = this.load_data.matrix;
         load(0);
-        this.load_data.matrix = {$shortrealtobits(1.0), $shortrealtobits(1.0), $shortrealtobits(1.0),
-                                 $shortrealtobits(2.0), $shortrealtobits(2.0), $shortrealtobits(2.0),
-                                 $shortrealtobits(4.0), $shortrealtobits(4.0), $shortrealtobits(4.0)};
+        this.load_data.matrix = {$shortrealtobits(1.0), $shortrealtobits(1.0), $shortrealtobits(1.0), $shortrealtobits(1.0), $shortrealtobits(1.0), $shortrealtobits(1.0),
+                                 $shortrealtobits(2.0), $shortrealtobits(2.0), $shortrealtobits(2.0), $shortrealtobits(2.0), $shortrealtobits(2.0), $shortrealtobits(2.0),
+                                 $shortrealtobits(4.0), $shortrealtobits(4.0), $shortrealtobits(4.0), $shortrealtobits(4.0), $shortrealtobits(4.0), $shortrealtobits(4.0),
+                                 $shortrealtobits(8.0), $shortrealtobits(8.0), $shortrealtobits(8.0), $shortrealtobits(8.0), $shortrealtobits(8.0), $shortrealtobits(8.0),
+                                 $shortrealtobits(16.0), $shortrealtobits(16.0), $shortrealtobits(16.0), $shortrealtobits(16.0), $shortrealtobits(16.0), $shortrealtobits(16.0),
+                                 $shortrealtobits(32.0), $shortrealtobits(32.0), $shortrealtobits(32.0), $shortrealtobits(32.0), $shortrealtobits(32.0), $shortrealtobits(32.0)};
         this.checker_data.matrix_in = this.load_data.matrix;
         load(1);
-        this.load_data.matrix = {$shortrealtobits(1.0), $shortrealtobits(2.0), $shortrealtobits(4.0),
-                                 $shortrealtobits(1.0), $shortrealtobits(2.0), $shortrealtobits(4.0),
-                                 $shortrealtobits(1.0), $shortrealtobits(2.0), $shortrealtobits(4.0)};
+        this.load_data.matrix = {$shortrealtobits(1.0), $shortrealtobits(2.0), $shortrealtobits(4.0), $shortrealtobits(8.0), $shortrealtobits(16.0), $shortrealtobits(32.0),
+                                 $shortrealtobits(1.0), $shortrealtobits(2.0), $shortrealtobits(4.0), $shortrealtobits(8.0), $shortrealtobits(16.0), $shortrealtobits(32.0),
+                                 $shortrealtobits(1.0), $shortrealtobits(2.0), $shortrealtobits(4.0), $shortrealtobits(8.0), $shortrealtobits(16.0), $shortrealtobits(32.0),
+                                 $shortrealtobits(1.0), $shortrealtobits(2.0), $shortrealtobits(4.0), $shortrealtobits(8.0), $shortrealtobits(16.0), $shortrealtobits(32.0),
+                                 $shortrealtobits(1.0), $shortrealtobits(2.0), $shortrealtobits(4.0), $shortrealtobits(8.0), $shortrealtobits(16.0), $shortrealtobits(32.0),
+                                 $shortrealtobits(1.0), $shortrealtobits(2.0), $shortrealtobits(4.0), $shortrealtobits(8.0), $shortrealtobits(16.0), $shortrealtobits(32.0)};
         this.checker_data.matrix_in = this.load_data.matrix;
         load(2);
         multiply(0, 1, 3);
@@ -95,6 +101,8 @@ class driver_tb;
         multiply(2, 1, 6);
         multiply(3, 1, 7);
         store_registers();
+        //simulation_register_dump(mpu_top.mpu_register_file.matrix_register_array);
+
 
         ////////////////////////////////
         // Check multiply by -1 cases //
@@ -137,10 +145,12 @@ class driver_tb;
         multiply(0, 2, 6);
         multiply(3, 0, 7);
         store_registers();
+        //show_matrix(this.load_data.matrix);
 
         ////////////////////////////////////////
         // Check inverse multiplication cases //
         ////////////////////////////////////////
+        /*
         this.load_data.matrix = {$shortrealtobits(1.0), $shortrealtobits(2.0), $shortrealtobits(3.0),
                                  $shortrealtobits(0.0), $shortrealtobits(1.0), $shortrealtobits(4.0),
                                  $shortrealtobits(5.0), $shortrealtobits(6.0), $shortrealtobits(0.0)};
@@ -165,7 +175,7 @@ class driver_tb;
         multiply(1, 0, 5);
         multiply(2, 3, 6);
         multiply(3, 2, 7);
-        store_registers();
+        store_registers();*/
 
         ///////////////////////////////
         // Run the bulk of the tests //
@@ -191,36 +201,48 @@ class driver_tb;
         //////////////////////////////////////////
         // Run back-to-back multiply operations //
         //////////////////////////////////////////
-        generate_matrix(1.0, 1.0, this.load_data);
+        /*generate_matrix(1.0, 1.0, this.load_data);
         this.checker_data.matrix_in = this.load_data.matrix;
         load(0);
         generate_matrix(1.0, 0.0, this.load_data);             // Uniform +1.0 matrix
         this.checker_data.matrix_in = this.load_data.matrix;
         load(1);
-        this.bfm.repeat_mult(0, 1, 2, NUM_TESTS*10000);
-        store(2);
+        this.bfm.repeat_mult(0, 1, 2, NUM_TESTS);
+        store(2);*/
 
         ///////////////////////////////////////////////////////
         // Check multiplication overflow and underflow cases //
         ///////////////////////////////////////////////////////
-        this.load_data.matrix = {BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32,
-                                 BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32,
-                                 BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32};
+        this.load_data.matrix = {BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32,
+                                 BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32,
+                                 BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32,
+                                 BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32,
+                                 BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32,
+                                 BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32};
         this.checker_data.matrix_in = this.load_data.matrix;
         load(0);
-        this.load_data.matrix = {BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32,
-                                 BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32,
-                                 BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32};
+        this.load_data.matrix = {BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32,
+                                 BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32,
+                                 BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32,
+                                 BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32,
+                                 BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32,
+                                 BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32};
         this.checker_data.matrix_in = this.load_data.matrix;
         load(1);
-        this.load_data.matrix = {SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32,
-                                 SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32,
-                                 SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32};
+        this.load_data.matrix = {SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32,
+                                 SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32,
+                                 SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32,
+                                 SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32,
+                                 SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32,
+                                 SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32};
         this.checker_data.matrix_in = this.load_data.matrix;
         load(2);
-        this.load_data.matrix = {SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32,
-                                 SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32,
-                                 SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32};
+        this.load_data.matrix = {SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32,
+                                 SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32,
+                                 SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32,
+                                 SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32,
+                                 SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32,
+                                 SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32};
         load(3);
         multiply(0, 1, 4);      // Overflow
         multiply(1, 0, 5);      // Overflow

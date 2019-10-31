@@ -84,59 +84,149 @@ interface mpu_bfm(input clk, rst);
     bit busy_0_0;                           // FMA cluster unit busy signals
     bit busy_0_1;
     bit busy_0_2;
+    bit busy_0_3;
+    bit busy_0_4;
+    bit busy_0_5;
     bit busy_1_0;
-    bit busy_1_2;
+    bit busy_1_5;
     bit busy_2_0;
-    bit busy_2_1;
-    bit busy_2_2;
+    bit busy_2_5;
+    bit busy_3_0;
+    bit busy_3_5;
+    bit busy_4_0;
+    bit busy_4_5;
+    bit busy_5_0;
+    bit busy_5_1;
+    bit busy_5_2;
+    bit busy_5_3;
+    bit busy_5_4;
+    bit busy_5_5;
 
     bit float_0_req_0_0;                    // FMA cluster float 0 request signals
-    bit float_0_req_0_2;
+    bit float_0_req_0_5;
     bit float_0_req_1_0;
-    bit float_0_req_1_2;
+    bit float_0_req_1_5;
     bit float_0_req_2_0;
-    bit float_0_req_2_2;
+    bit float_0_req_2_5;
+    bit float_0_req_3_0;
+    bit float_0_req_3_5;
+    bit float_0_req_4_0;
+    bit float_0_req_4_5;
+    bit float_0_req_5_0;
+    bit float_0_req_5_5;
 
     bit float_1_req_0_0;                    // FMA cluster float 1 request signals
     bit float_1_req_0_1;
     bit float_1_req_0_2;
-    bit float_1_req_2_0;
-    bit float_1_req_2_1;
-    bit float_1_req_2_2;
+    bit float_1_req_0_3;
+    bit float_1_req_0_4;
+    bit float_1_req_0_5;
+    bit float_1_req_5_0;
+    bit float_1_req_5_1;
+    bit float_1_req_5_2;
+    bit float_1_req_5_3;
+    bit float_1_req_5_4;
+    bit float_1_req_5_5;
 
     bit ready_0_0;                          // FMA cluster unit ready signals
     bit ready_0_1;
     bit ready_0_2;
+    bit ready_0_3;
+    bit ready_0_4;
+    bit ready_0_5;
     bit ready_1_0;
     bit ready_1_1;
     bit ready_1_2;
+    bit ready_1_3;
+    bit ready_1_4;
+    bit ready_1_5;
     bit ready_2_0;
     bit ready_2_1;
     bit ready_2_2;
+    bit ready_2_3;
+    bit ready_2_4;
+    bit ready_2_5;
+    bit ready_3_0;
+    bit ready_3_1;
+    bit ready_3_2;
+    bit ready_3_3;
+    bit ready_3_4;
+    bit ready_3_5;
+    bit ready_4_0;
+    bit ready_4_1;
+    bit ready_4_2;
+    bit ready_4_3;
+    bit ready_4_4;
+    bit ready_4_5;
+    bit ready_5_0;
+    bit ready_5_1;
+    bit ready_5_2;
+    bit ready_5_3;
+    bit ready_5_4;
+    bit ready_5_5;
 
     float_sp float_0_data_0_0;              // FMA cluster float 0 signals
-    float_sp float_0_data_0_2;
+    float_sp float_0_data_0_5;
     float_sp float_0_data_1_0;
-    float_sp float_0_data_1_2;
+    float_sp float_0_data_1_5;
     float_sp float_0_data_2_0;
-    float_sp float_0_data_2_2;
+    float_sp float_0_data_2_5;
+    float_sp float_0_data_3_0;
+    float_sp float_0_data_3_5;
+    float_sp float_0_data_4_0;
+    float_sp float_0_data_4_5;
+    float_sp float_0_data_5_0;
+    float_sp float_0_data_5_5;
 
     float_sp float_1_data_0_0;              // FMA cluster float 1 signals
     float_sp float_1_data_0_1;
     float_sp float_1_data_0_2;
-    float_sp float_1_data_2_0;
-    float_sp float_1_data_2_1;
-    float_sp float_1_data_2_2;
+    float_sp float_1_data_0_3;
+    float_sp float_1_data_0_4;
+    float_sp float_1_data_0_5;
+    float_sp float_1_data_5_0;
+    float_sp float_1_data_5_1;
+    float_sp float_1_data_5_2;
+    float_sp float_1_data_5_3;
+    float_sp float_1_data_5_4;
+    float_sp float_1_data_5_5;
 
     float_sp result_0_0;                    // FMA cluster float answer signals
     float_sp result_0_1;
     float_sp result_0_2;
+    float_sp result_0_3;
+    float_sp result_0_4;
+    float_sp result_0_5;
     float_sp result_1_0;
     float_sp result_1_1;
     float_sp result_1_2;
+    float_sp result_1_3;
+    float_sp result_1_4;
+    float_sp result_1_5;
     float_sp result_2_0;
     float_sp result_2_1;
     float_sp result_2_2;
+    float_sp result_2_3;
+    float_sp result_2_4;
+    float_sp result_2_5;
+    float_sp result_3_0;
+    float_sp result_3_1;
+    float_sp result_3_2;
+    float_sp result_3_3;
+    float_sp result_3_4;
+    float_sp result_3_5;
+    float_sp result_4_0;
+    float_sp result_4_1;
+    float_sp result_4_2;
+    float_sp result_4_3;
+    float_sp result_4_4;
+    float_sp result_4_5;
+    float_sp result_5_0;
+    float_sp result_5_1;
+    float_sp result_5_2;
+    float_sp result_5_3;
+    float_sp result_5_4;
+    float_sp result_5_5;
 
     bit error_detected;                     // FMA cluster error detected signal
     
