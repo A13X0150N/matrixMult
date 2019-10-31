@@ -3,7 +3,13 @@
 # Mode is compiled for puresim for simulation or veloce for emulation
 
 help:
-	@echo -e " \n make sim: clean work build run \n make emu: clean work vbuild run \n"
+	@echo -e " \n \
+	make sim: clean work build run \n \
+	make emu: clean work vbuild run \n"
+
+SIM_FILES = \
+
+EMU_FILES = \
 
 # make sim runs all in the 'puresim' environment
 sim: clean work build run
@@ -60,7 +66,7 @@ vbuild:
 	velanalyze src/dut/mpu_dispatcher.sv		# Analyze the dispatcher
 	velanalyze src/dut/mpu_collector.sv			# Analyze the collector
 	velcomp -top mpu_top   						# Synthesize!
-	velhvl -sim veloce -enable_profile_report
+	velhvl -sim veloce
 
 # Run a quick experiment on the side
 experiment:
