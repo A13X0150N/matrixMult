@@ -1,4 +1,3 @@
-src/pkg/packages.sv
 src/hdl/fma_cluster.sv
 src/hdl/fpu_fma.sv
 src/hdl/mpu_bfm.sv
@@ -9,8 +8,3 @@ src/hdl/mpu_load.sv
 src/hdl/mpu_register_file.sv
 src/hdl/mpu_store.sv
 src/hdl/mpu_top.sv
-src/hvl/checker_tb.sv
-src/hvl/driver_tb.sv
-src/hvl/scoreboard_tb.sv
-src/hvl/testbench_tb.sv
-src/hvl/top_tb.sv

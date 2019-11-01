@@ -9,7 +9,7 @@
 //
 // ----------------------------------------------------------------------------
 
-`include "src/tb/testbench_tb.sv"
+`include "src/hvl/testbench_tb.sv"
 
 import global_defs::*;
 import mpu_data_types::*;

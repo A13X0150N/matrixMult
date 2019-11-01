@@ -9,9 +9,9 @@
 //
 // ----------------------------------------------------------------------------
 
-`include "src/tb/driver_tb.sv"
-`include "src/tb/scoreboard_tb.sv"
-`include "src/tb/checker_tb.sv"
+`include "src/hvl/driver_tb.sv"
+`include "src/hvl/scoreboard_tb.sv"
+`include "src/hvl/checker_tb.sv"
 
 import global_defs::*;
 import mpu_data_types::*;

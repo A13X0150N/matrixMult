@@ -3,94 +3,107 @@
 # Mode is compiled for puresim for simulation or veloce for emulation
 
 help:
-	@echo -e " \n \
-	make sim: clean work build run \n \
-	make emu: clean work vbuild run \n"
-
-SIM_FILES = \
-
-EMU_FILES = \
+	@echo -e "\n\t\tMakefile options: \n \
+	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * \n \
+	*                                                                   * \n \
+	*  make sim: clean-puresim lib build run                            * \n \
+	*  make emu: clean-veloce vlib vbuild run                           * \n \
+	*  make sim-cover: clean-puresim lib build-cover run-cover report   * \n \
+	*  make emu-cover: clean-veloce vlib vbuild-cover run-cover report  * \n \
+	*  make exp: clean experiment                                       * \n \
+	*                                                                   * \n \
+	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * \n"
 
 # make sim runs all in the 'puresim' environment
-sim: clean work build run
+sim: clean-puresim lib build run
+sim-cover: clean-puresim lib build-cover run-cover report
 
 # make emu runs all in the 'veloce' environment
-emu: clean work vbuild run
+emu: clean-veloce vlib vbuild run
+emu-cover: clean-veloce vlib vbuild-cover run-cover report
 
 # make exp runs a side experiment that does not intersect with the design
-exp: clean experiment
+exp: experiment
 
-# Create respective work libs and map them
-work:
-	vlib work
-	vmap work work
+lib:
+	vlib work_puresim
+	vmap work work_puresim
 
-# Compile/synthesize the simulation environment
+vlib:
+	vlib work_veloce
+	vmap work work_veloce
+
 build:
-	vlog src/pkg/packages.sv					# Compile the package
-	vlog src/tb/scoreboard_tb.sv				# Compile the scoreboard
-	vlog src/tb/driver_tb.sv					# Compile the driver
-	vlog src/tb/checker_tb.sv					# Compile the checker
-	vlog src/tb/testbench_tb.sv					# Compile the testbench
-	vlog src/tb/top_tb.sv 						# Compile the top-level testbench
-	vlog src/dut/mpu_bfm.sv						# Compile the MPU interface
-	vlog src/dut/mpu_register_file.sv			# Compile the DUT register files
-	vlog src/dut/mpu_load.sv					# Compile the load stage
-	vlog src/dut/mpu_store.sv					# Compile the store stage
-	vlog src/dut/fpu_fma.sv						# Compile the FPU
-	vlog src/dut/fma_cluster.sv					# Compile the FMA cluster
-	vlog src/dut/mpu_controller.sv 				# Compile the controller
-	vlog src/dut/mpu_dispatcher.sv 				# Compile the dispatcher
-	vlog src/dut/mpu_collector.sv 				# Compile the collector
-	vlog src/dut/mpu_top.sv						# Compile the HDL top
-	velhvl -sim puresim
+	vlog -f common_utils.f
+	vlog -f hvl_files.f
+	vlog -f hdl_files.f
+	tbxsvlink -puresim
 
-# Compile/synthesize the emulation environment
 vbuild:
-	vlog src/pkg/packages.sv					# Compile the package
-	vlog src/tb/scoreboard_tb.sv				# Compile the scoreboard
-	vlog src/tb/driver_tb.sv					# Compile the driver
-	vlog src/tb/checker_tb.sv					# Compile the checker
-	vlog src/tb/testbench_tb.sv					# Compile the testbench
-	vlog src/tb/top_tb.sv		   				# Compile the top-level testbench		
-	velanalyze src/pkg/packages.sv				# Analyze the package for synthesis
-	velanalyze -extract_hvl_info +define+QUESTA src/tb/driver_tb.sv	# Analyze the HVL for external task calls in BFM
-	velanalyze src/dut/mpu_bfm.sv				# Analyze the MPU interface for synthesis
-	velanalyze src/dut/mpu_top.sv				# Analyze the HDL top for synthesis
-	velanalyze src/dut/mpu_register_file.sv		# Analyze the DUT register files for synthesis
-	velanalyze src/dut/mpu_load.sv				# Analyze the load stage
-	velanalyze src/dut/mpu_store.sv				# Analyze the store stage
-	velanalyze src/dut/fpu_fma.sv				# Analyze the FPU
-	velanalyze src/dut/fma_cluster.sv			# Analyze the FMA cluster
-	velanalyze src/dut/mpu_controller.sv		# Analyze the controller
-	velanalyze src/dut/mpu_dispatcher.sv		# Analyze the dispatcher
-	velanalyze src/dut/mpu_collector.sv			# Analyze the collector
-	velcomp -top mpu_top   						# Synthesize!
+	vlog -f common_utils.f
+	vlog -f hvl_files.f
+	vlog -f hdl_files.f
+	velanalyze -f common_utils.f
+	velanalyze -f hdl_files.f
+	velanalyze -extract_hvl_info -f hvl_files.f
+	velcomp -top mpu_top
 	velhvl -sim veloce
 
-# Run a quick experiment on the side
+build-cover:
+	vlog -cover bcst -f common_utils.f
+	vlog -cover bcst -f hvl_files.f
+	vlog -cover bcfst -f hdl_files.f
+	tbxsvlink -puresim
+
+vbuild-cover:
+	vlog -cover bcst -f common_utils.f
+	vlog -cover bcst -f hvl_files.f
+	vlog -cover bcfst -f hdl_files.f
+	velanalyze -f common_utils.f
+	velanalyze -f hdl_files.f
+	velanalyze -extract_hvl_info -f hvl_files.f
+	velcomp -top mpu_top
+	velhvl -sim veloce
+
+run:
+	vsim -c -do "run -all; quit -f" top_tb mpu_top
+
+run-cover:
+	vsim -c -do "coverage save -onexit coverage/mpu_cov.ucdb; run -all; quit -f" -coverage top_tb mpu_top
+
+report:
+	vcover report -html -htmldir coverage -verbose -threshL 50 -threshH 90 coverage/mpu_cov.ucdb
+
+clean-puresim:
+	rm -rf coverage/*
+	rm -rf modelsim.ini
+	rm -rf tbx.log/
+	rm -rf tbx.med/
+	rm -rf transcript
+	rm -rf work_puresim/
+
+clean-veloce:
+	rm -rf coverage/*
+	rm -rf edsenv
+	rm -rf modelsim.ini
+	rm -rf tbxbindings.h
+	rm -rf transcript
+	rm -rf veloce.log/
+	rm -rf veloce.map
+	rm -rf veloce.med/
+	rm -rf veloce.wave/
+	rm -rf velrunopts.ini
+	rm -rf work_veloce/
+
+clean: clean-puresim clean-veloce
+	rm -rf work/
+
+celan: clean
+
+# Run a side experiment
 experiment:
+	rm -rf work/
+	rm -rf transcript
 	vlib work
 	vlog src/experimental/top_exp.sv
-	vsim -c -do "run -all; quit -f" top_exp		# Run experiment
-
-# Run simulation or emulation
-run:
-	vsim -c -do "run -all; quit -f" top_tb mpu_top	# Run all
-
-# Clean the environment
-clean:
-	rm -rf tbxbindings.h 
-	rm -rf modelsim.ini 
-	rm -rf work
-	rm -rf transcript
-	rm -rf *~
-	rm -rf vsim.wlf
-	rm -rf *.log
-	rm -rf dgs.dbg
-	rm -rf dmslogdir
-	rm -rf veloce.med
-	rm -rf veloce.wave
-	rm -rf veloce.map
-	rm -rf velrunopts.ini
-	rm -rf edsenv
+	vsim -c -do "run -all; quit -f" top_exp

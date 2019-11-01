@@ -201,14 +201,14 @@ class driver_tb;
         //////////////////////////////////////////
         // Run back-to-back multiply operations //
         //////////////////////////////////////////
-        /*generate_matrix(1.0, 1.0, this.load_data);
+        generate_matrix(1.0, 1.0, this.load_data);
         this.checker_data.matrix_in = this.load_data.matrix;
         load(0);
         generate_matrix(1.0, 0.0, this.load_data);             // Uniform +1.0 matrix
         this.checker_data.matrix_in = this.load_data.matrix;
         load(1);
-        this.bfm.repeat_mult(0, 1, 2, NUM_TESTS);
-        store(2);*/
+        this.bfm.repeat_mult(0, 1, 2, NUM_TESTS*10);
+        store(2);
 
         ///////////////////////////////////////////////////////
         // Check multiplication overflow and underflow cases //

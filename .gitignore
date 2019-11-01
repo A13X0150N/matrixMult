@@ -1,4 +1,6 @@
 work/
+work_veloce/
+work_puresim/
 transcript
 edsenv
 modelsim.ini
@@ -8,3 +10,4 @@ veloce.med/
 veloce.wave/
 veloce.map
 velrunopts.ini
+tbx.*

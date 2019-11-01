@@ -71,11 +71,11 @@ module fpu_fma
                       ((float_1_in.mantissa && !float_1_in.exponent) || float_1_in.exponent == '1);
 
     // TODO: come back and work on error detection, it is currently locking the cluster when one happens
-    assign error_generated = FALSE;
+    assign error_generated = FALSE; //(($signed(product.exponent) > MAX_EXP) || ($signed(product.exponent) < MIN_EXP));
     						 //((float_0_in != POS_ONE_32BIT) && (float_0_in != NEG_ONE_32BIT)) &&
                              //((float_1_in != POS_ONE_32BIT) && (float_1_in != NEG_ONE_32BIT)) &&
-                             //(($signed(product.exponent) > MAX_EXP) || ($signed(product.exponent) < MIN_EXP));
                              //(($signed(float_out.exponent) > 127) || ($signed(float_out.exponent) < -128));
+                             
     // State machine driver
     always_ff @(posedge clk) begin
         state <= rst ? IDLE : next_state;
