@@ -24,8 +24,8 @@ package global_defs;
 
     // Single-precision floating point
     //if (FP == 32) begin
-        parameter MIN_EXP = -127;
-        parameter MAX_EXP = 128;
+        parameter MIN_EXP = -128;
+        parameter MAX_EXP = 127;
         parameter EXP_OFFSET = 127;
         parameter EXPBITS = 8;
         parameter MANBITS = 23;
@@ -151,11 +151,16 @@ package mpu_data_types;
         bit [2*MANBITS+3:0] mantissa;
     } internal_float_sp;
 
+    // Vectorized matrix data type
+    typedef struct packed{
+        float_sp [0:M*N-1] matrix;
+    } vectorized_matrix_sp;
+
     // MPU bus sequence item struct
     typedef struct packed {
         // Request fields
         mpu_instruction_e op;
-        float_sp [0:M*N-1] matrix_in;
+        vectorized_matrix_sp matrix_in;
         bit [MBITS:0] m_in;
         bit [NBITS:0] n_in;
         bit [MATRIX_REG_BITS:0] src_addr_0;
@@ -163,18 +168,18 @@ package mpu_data_types;
         bit [MATRIX_REG_BITS:0] dest_addr;
       
         // Response fields
-        float_sp [0:M*N-1] matrix_out;
+        vectorized_matrix_sp matrix_out;
     } mpu_data_sp;
 
     typedef struct packed {
-        float_sp [0:M*N-1] matrix;
+        vectorized_matrix_sp load_matrix;
         bit [MBITS:0] m;
         bit [NBITS:0] n;
         bit [MATRIX_REG_BITS:0] addr0;
     } mpu_load_sp;
 
     typedef struct packed {
-        float_sp [0:M*N-1] matrix;    
+        vectorized_matrix_sp store_matrix;    
         bit [MATRIX_REG_BITS:0] addr0;
     } mpu_store_sp;
 
@@ -199,6 +204,7 @@ package testbench_utilities;
     import mpu_data_types::mpu_store_sp;
     import mpu_data_types::mpu_multiply_sp;
     import mpu_data_types::float_sp;
+    import mpu_data_types::vectorized_matrix_sp;
 
     parameter CLOCK_PERIOD = 10;                // Clock Perid
     parameter MAX_CYCLES = 1000000;             // Maximum clock cycles
@@ -208,21 +214,26 @@ package testbench_utilities;
     parameter BIG_FLOAT_32 = 32'h7f7fffff;      // Very large number to force overflow
     parameter SMALL_FLOAT_32 = 32'h00800000;    // Very small number to force underflow
     parameter MAX_ERROR = 10.0;                 // Maximum tolerated error accumulated across a matrix
-    parameter NUM_TESTS = 1000;                 // Scalable number of tests to perform
+    //parameter NUM_TESTS = 100;                 // Scalable number of tests to perform
 
     // Matrix generator, incremental order
-    task automatic generate_matrix(input shortreal seed, input shortreal scale, ref mpu_load_sp genmat);
+    task automatic generate_matrix(input shortreal seed, input shortreal scale, vectorized_matrix_sp genmat);
         for (int i = 0; i < NUM_ELEMENTS; ++i) begin
-            genmat.matrix = {(genmat.matrix), $shortrealtobits(seed + i * scale)};
+            genmat = {genmat, $shortrealtobits(seed + i * scale)};
         end
     endtask : generate_matrix
 
     // Matrix generator, decremental order
-    task automatic generate_matrix_reverse(input shortreal seed, input shortreal scale, ref mpu_load_sp genmat);
+    task automatic generate_matrix_reverse(input shortreal seed, input shortreal scale, vectorized_matrix_sp genmat);
         for (int i = NUM_ELEMENTS; i; --i) begin
-            genmat.matrix = {(genmat.matrix), $shortrealtobits(seed + i * scale)};
+            genmat = {genmat, $shortrealtobits(seed + i * scale)};
         end
     endtask : generate_matrix_reverse
+
+    // Generate a 'random' 32-bit float
+    function shortreal random_float();
+        random_float = 1+($urandom%1000)/1000.0;
+    endfunction : random_float
 
     // Matrix Output
     task show_matrix(input float_sp [0:NUM_ELEMENTS-1] matrix_in);

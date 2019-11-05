@@ -255,13 +255,13 @@ interface mpu_bfm(input clk, rst);
         mem_m_load_size <= data.m;
         mem_n_load_size <= data.n;
         mem_load_addr <= data.addr0;
-        mem_load_element <= data.matrix[idx];
+        mem_load_element <= data.load_matrix.matrix[idx];
         load_req <= TRUE;
         while (!mem_load_ack) begin
             @(posedge clk);
         end;
         do begin
-            mem_load_element <= data.matrix[idx];
+            mem_load_element <= data.load_matrix.matrix[idx];
             idx <= idx + 1;
             @(posedge clk);
         end while (mem_load_ack);
@@ -279,7 +279,7 @@ interface mpu_bfm(input clk, rst);
         end
         do begin
             @(posedge clk);
-            data_out.matrix[idx] <= mem_store_element;
+            data_out.store_matrix.matrix[idx] <= mem_store_element;
             idx <= idx + 1;
         end while (mem_store_en);
         @(posedge clk);

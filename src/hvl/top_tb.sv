@@ -17,14 +17,20 @@ import testbench_utilities::*;
 
 module top_tb;
 
-    testbench_tb testbench_h;                   // Testbench handle
+    testbench_tb testbench_h;   // Testbench handle
+    string testcase;
+    int unsigned runs;
 
     // Object instantiation
     initial begin
         $display("\n\t * START TIME: ");
         $system("date");
-        testbench_h = new(mpu_top.mpu_bfm);
+        if($value$plusargs("TESTCASE=%s", testcase));
+        if($value$plusargs("RUNS=%d", runs));
+        testbench_h = new(mpu_top.mpu_bfm, testcase, runs);
         testbench_h.execute();
+        #(CLOCK_PERIOD*MAX_CYCLES) $warning("MAX_CYCLES exceeded before end of test, shutting down testbench\n");
+        $finish;
     end
 
     final begin

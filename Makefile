@@ -3,16 +3,16 @@
 # Mode is compiled for puresim for simulation or veloce for emulation
 
 help:
-	@echo -e "\n\t\tMakefile options: \n \
+	@echo -e "\n\n\t\t\tMakefile options: \n \
 	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * \n \
 	*                                                                   * \n \
 	*  make sim: clean-puresim lib build run                            * \n \
 	*  make emu: clean-veloce vlib vbuild run                           * \n \
 	*  make sim-cover: clean-puresim lib build-cover run-cover report   * \n \
 	*  make emu-cover: clean-veloce vlib vbuild-cover run-cover report  * \n \
-	*  make exp: clean experiment                                       * \n \
+	*  make exp: clean-experiment experiment                            * \n \
 	*                                                                   * \n \
-	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * \n"
+	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * \n\n"
 
 # make sim runs all in the 'puresim' environment
 sim: clean-puresim lib build run
@@ -66,7 +66,7 @@ vbuild-cover:
 	velhvl -sim veloce
 
 run:
-	vsim -c -do "run -all; quit -f" top_tb mpu_top
+	vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_positive_one +RUNS=100
 
 run-cover:
 	vsim -c -do "coverage save -onexit coverage/mpu_cov.ucdb; run -all; quit -f" -coverage top_tb mpu_top
@@ -95,15 +95,16 @@ clean-veloce:
 	rm -rf velrunopts.ini
 	rm -rf work_veloce/
 
-clean: clean-puresim clean-veloce
+clean-experiment:
 	rm -rf work/
+	rm -rf transcript
+
+clean: clean-puresim clean-veloce clean-experiment
 
 celan: clean
 
 # Run a side experiment
 experiment:
-	rm -rf work/
-	rm -rf transcript
 	vlib work
 	vlog src/experimental/top_exp.sv
 	vsim -c -do "run -all; quit -f" top_exp

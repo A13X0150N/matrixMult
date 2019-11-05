@@ -22,7 +22,7 @@ parameter MATRIX_REG_BITS = $clog2(MATRIX_REGISTERS)-1;  // Register address bit
 localparam CLOCK_PERIOD = 10;
 localparam CYCLES = 30;
 
-parameter MIN_EXP = -126;
+parameter MIN_EXP = -128;
 parameter MAX_EXP = 127;
 parameter EXP_OFFSET = 127;
 parameter EXPBITS = 8;
@@ -90,6 +90,8 @@ module top_exp;
     fma uut(.*);
     shortreal a, b;
 
+    bit [7:0] test;
+
     // Main Test Sequence
     initial begin
         //$monitor($time/10, " clock cycles    float_0_req %b   float_1_req %b   ready_answer %b   float_0 %f   float_1 %f   float_answer %f", float_0_req_out, float_1_req_out, ready_answer_out, $bitstoshortreal(float_0_out), $bitstoshortreal(float_1_out), $bitstoshortreal(float_answer_out));
@@ -106,7 +108,7 @@ module top_exp;
         b = 1.0;
         float_0_in = $shortrealtobits(a);
         float_1_in = $shortrealtobits(b);
-        $display("float0 * float1: %f * %f", $bitstoshortreal(float_0_in), $bitstoshortreal(float_1_in));
+        //$display("float0 * float1: %f * %f", $bitstoshortreal(float_0_in), $bitstoshortreal(float_1_in));
         @(posedge clk);
         float_0_req_in = FALSE;
         float_1_req_in = FALSE;
@@ -120,7 +122,7 @@ module top_exp;
         b = 2.0;
         float_0_in = $shortrealtobits(a);
         float_1_in = $shortrealtobits(b);
-        $display("float0 * float1: %f * %f", $bitstoshortreal(float_0_in), $bitstoshortreal(float_1_in));
+        //$display("float0 * float1: %f * %f", $bitstoshortreal(float_0_in), $bitstoshortreal(float_1_in));
         @(posedge clk);
         float_0_req_in = FALSE;
         float_1_req_in = FALSE;
@@ -134,11 +136,17 @@ module top_exp;
         b = 4.0;
         float_0_in = $shortrealtobits(a);
         float_1_in = $shortrealtobits(b);
-        $display("float0 * float1: %f * %f", $bitstoshortreal(float_0_in), $bitstoshortreal(float_1_in));
+        //$display("float0 * float1: %f * %f", $bitstoshortreal(float_0_in), $bitstoshortreal(float_1_in));
         @(posedge clk);
         float_0_req_in = FALSE;
         float_1_req_in = FALSE;
         do @(posedge clk); while (busy_out);
+
+        for (test = '1; test; test--) begin
+            $display("test:   %0d \t %b", $signed(test), $signed(test));
+        end
+        $display("test:   %0d \t %b", $signed(test), $signed(test));
+
 
         repeat (10) @(posedge clk);
 

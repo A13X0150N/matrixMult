@@ -19,7 +19,7 @@ class driver_tb;
 
     virtual mpu_bfm bfm;                            // Virtual BFM interface
     mailbox #(mpu_data_sp) driver2checker;          // Mailbox to reference model
-    //mpu_data_sp data_in, data_out, checker_data;    // Interface packets
+    mailbox stimulus2driver;
     mpu_data_sp checker_data;                       // Checker model packet
     int i, num;                                     // Loop counters
     shortreal ii;                                   // Float iteration
@@ -27,16 +27,13 @@ class driver_tb;
     mpu_load_sp load_data;
     mpu_store_sp store_data;
     mpu_multiply_sp multiply_data;
+    int unsigned iterations;
 
     // Object instantiation
-    function new (virtual mpu_bfm b);
+    function new(virtual mpu_bfm b, int unsigned iterations);
         this.bfm = b;
+        this.iterations = iterations;
     endfunction : new
-
-    // Generate a 'random' 32-bit float
-    function shortreal random();
-        random = 1+($urandom%1000)/1000.0;
-    endfunction
 
     // Run the tests
     task execute();
@@ -46,12 +43,18 @@ class driver_tb;
         // First, check load and store of all internal registers //
         ///////////////////////////////////////////////////////////
         for (i = 0, ii = 0.0; i < MATRIX_REGISTERS; ++i, ii = ii + 1.0 * 9.0) begin
-            generate_matrix(ii, 1.0, this.load_data);  // Each element is unique and sequential across all matrix registers
-            this.checker_data.matrix_in = this.load_data.matrix;
+            generate_matrix(ii, 1.0, this.load_data.load_matrix);  // Each element is unique and sequential across all matrix registers
+            this.checker_data.matrix_in = this.load_data.load_matrix;
             load(i);
         end
         store_registers();
 
+
+
+
+
+
+        /*
         ///////////////////////////////////////////////////////////////
         // Next, check that the individual FMA units are all working //
         ///////////////////////////////////////////////////////////////
@@ -145,7 +148,7 @@ class driver_tb;
         multiply(0, 2, 6);
         multiply(3, 0, 7);
         store_registers();
-        //show_matrix(this.load_data.matrix);
+        //show_matrix(this.load_data.matrix);*/
 
         ////////////////////////////////////////
         // Check inverse multiplication cases //
@@ -177,17 +180,17 @@ class driver_tb;
         multiply(3, 2, 7);
         store_registers();*/
 
-        ///////////////////////////////
+        /*///////////////////////////////
         // Run the bulk of the tests //
         ///////////////////////////////
-        for (num = NUM_TESTS; num; --num) begin
-            generate_matrix(random()*-1.0/num, random()*-1.0, this.load_data);
+        for (num = this.iterations; num; --num) begin
+            generate_matrix(random_float()*-1.0/num, random_float()*-1.0, this.load_data);
             this.checker_data.matrix_in = this.load_data.matrix;
             load(0);
-            generate_matrix_reverse(0.001, random()/num, this.load_data);
+            generate_matrix_reverse(0.001, random_float()/num, this.load_data);
             this.checker_data.matrix_in = this.load_data.matrix;
             load(1);
-            generate_matrix(0.1, random()*0.07, this.load_data);
+            generate_matrix(0.1, random_float()*0.07, this.load_data);
             this.checker_data.matrix_in = this.load_data.matrix;
             load(2);
             multiply($urandom_range(0,2), $urandom_range(0,2), 3);
@@ -196,24 +199,24 @@ class driver_tb;
             multiply($urandom_range(0,5), $urandom_range(0,5), 6);
             multiply($urandom_range(1,2), $urandom_range(1,2), 7);
             store_registers();
-        end
+        end*/
 
         //////////////////////////////////////////
         // Run back-to-back multiply operations //
         //////////////////////////////////////////
-        generate_matrix(1.0, 1.0, this.load_data);
+        /*generate_matrix(1.0, 1.0, this.load_data);
         this.checker_data.matrix_in = this.load_data.matrix;
         load(0);
         generate_matrix(1.0, 0.0, this.load_data);             // Uniform +1.0 matrix
         this.checker_data.matrix_in = this.load_data.matrix;
         load(1);
-        this.bfm.repeat_mult(0, 1, 2, NUM_TESTS*10);
-        store(2);
+        this.bfm.repeat_mult(0, 1, 2, this.iterations);
+        store(2);*/
 
         ///////////////////////////////////////////////////////
         // Check multiplication overflow and underflow cases //
         ///////////////////////////////////////////////////////
-        this.load_data.matrix = {BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32,
+        /*this.load_data.matrix = {BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32,
                                  BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32,
                                  BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32,
                                  BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32,
@@ -248,7 +251,7 @@ class driver_tb;
         multiply(1, 0, 5);      // Overflow
         multiply(2, 3, 6);      // Underflow
         multiply(3, 2, 7);      // Underflow
-        store_registers();
+        store_registers();*/
 
         //////////////////////
         // Finish Testbench //
@@ -265,7 +268,7 @@ class driver_tb;
         this.checker_data.src_addr_0 = '0;
         this.checker_data.src_addr_1 = '0;
         this.checker_data.dest_addr = '0;
-        foreach(this.checker_data.matrix_in[i]) this.checker_data.matrix_in[i] = '0;
+        foreach(this.checker_data.matrix_in.matrix[i]) this.checker_data.matrix_in.matrix[i] = '0;
         this.load_data.m = M_MEM;
         this.load_data.n = N_MEM;
         this.driver2checker.put(this.checker_data);       
@@ -298,7 +301,7 @@ class driver_tb;
         this.checker_data.src_addr_0 = src_addr_0;
         this.store_data.addr0 = src_addr_0;
         this.bfm.store(this.store_data, this.store_data);
-        this.checker_data.matrix_out = this.store_data.matrix;
+        this.checker_data.matrix_out = this.store_data.store_matrix;
         this.driver2checker.put(this.checker_data);
     endtask : store
 
