@@ -217,11 +217,13 @@ package testbench_utilities;
     //parameter NUM_TESTS = 100;                 // Scalable number of tests to perform
 
     // Matrix generator, incremental order
-    task automatic generate_matrix(input shortreal seed, input shortreal scale, vectorized_matrix_sp genmat);
+    function vectorized_matrix_sp generate_matrix(input shortreal seed, input shortreal scale);
+        vectorized_matrix_sp genmat;
         for (int i = 0; i < NUM_ELEMENTS; ++i) begin
             genmat = {genmat, $shortrealtobits(seed + i * scale)};
         end
-    endtask : generate_matrix
+        return genmat;
+    endfunction : generate_matrix
 
     // Matrix generator, decremental order
     task automatic generate_matrix_reverse(input shortreal seed, input shortreal scale, vectorized_matrix_sp genmat);

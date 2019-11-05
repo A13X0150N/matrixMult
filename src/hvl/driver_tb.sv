@@ -43,7 +43,7 @@ class driver_tb;
         // First, check load and store of all internal registers //
         ///////////////////////////////////////////////////////////
         for (i = 0, ii = 0.0; i < MATRIX_REGISTERS; ++i, ii = ii + 1.0 * 9.0) begin
-            generate_matrix(ii, 1.0, this.load_data.load_matrix);  // Each element is unique and sequential across all matrix registers
+            this.load_data.load_matrix = generate_matrix(ii, 1.0);  // Each element is unique and sequential across all matrix registers
             this.checker_data.matrix_in = this.load_data.load_matrix;
             load(i);
         end

@@ -48,7 +48,7 @@ class checker_tb;
                     i = 0;
                     for (row = 0; row < M; ++row) begin
                         for (col = 0; col < N; ++col) begin
-                            ref_register_array[data.src_addr_0][row][col] = data.matrix_in[i++];
+                            ref_register_array[data.src_addr_0][row][col] = data.matrix_in.matrix[i++];
                         end
                     end
                 end
@@ -56,7 +56,7 @@ class checker_tb;
                     i = 0;
                     for (row = 0; row < M; ++row) begin
                         for (col = 0; col < N; ++col) begin
-                            matrix_result[row][col] = data.matrix_out[i++];
+                            matrix_result[row][col] = data.matrix_out.matrix[i++];
                         end
                     end
                     test_result = check_result(data.src_addr_0);
