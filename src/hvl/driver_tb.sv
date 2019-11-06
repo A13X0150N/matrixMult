@@ -19,7 +19,7 @@ class driver_tb;
 
     virtual mpu_bfm bfm;                            // Virtual BFM interface
     mailbox #(mpu_data_sp) driver2checker;          // Mailbox to reference model
-    mailbox stimulus2driver;
+    mailbox #(stim_data_sp) stimulus2driver;        // Generated stimulus
     mpu_data_sp checker_data;                       // Checker model packet
     int i, num;                                     // Loop counters
     shortreal ii;                                   // Float iteration
@@ -27,6 +27,7 @@ class driver_tb;
     mpu_load_sp load_data;
     mpu_store_sp store_data;
     mpu_multiply_sp multiply_data;
+    stim_data_sp stim_data;
     int unsigned iterations;
 
     // Object instantiation
@@ -39,19 +40,18 @@ class driver_tb;
     task execute();
         init();
 
-        ///////////////////////////////////////////////////////////
-        // First, check load and store of all internal registers //
-        ///////////////////////////////////////////////////////////
-        for (i = 0, ii = 0.0; i < MATRIX_REGISTERS; ++i, ii = ii + 1.0 * 9.0) begin
-            this.load_data.load_matrix = generate_matrix(ii, 1.0);  // Each element is unique and sequential across all matrix registers
-            this.checker_data.matrix_in = this.load_data.load_matrix;
-            load(i);
-        end
+        do begin
+            this.stimulus2driver.get(this.stim_data);
+            if (this.stim_data.ready_to_load) begin
+                this.load_data.load_matrix = this.stim_data.generated_matrix;
+                this.checker_data.matrix_in = this.stim_data.generated_matrix;
+                load(this.stim_data.addr0);
+            end
+            if (this.stim_data.ready_to_multiply) begin
+                multiply(this.stim_data.addr0, this.stim_data.addr1, this.stim_data.dest);
+            end
+        end while (!this.stim_data.ready_to_store);
         store_registers();
-
-
-
-
 
 
         /*

@@ -20,16 +20,15 @@ import testbench_utilities::*;
 
 class testbench_tb;
 
-    virtual mpu_bfm bfm;                    // Virtual BFM interface
-    driver_tb driver_h;                     // Testbench driver
-    scoreboard_tb scoreboard_h;             // Testbench scoreboard
-    checker_tb checker_h;                   // Testbench checker
-    mailbox #(mpu_data_sp) driver2checker;  // Top-level driver2checker mailbox
-    mailbox checker2scoreboard;             // Top-level checker2scoreboard mailbox
-    mailbox stimulus2driver;
-
-    stimulus_tb stimulus_h;                 // Parent class test type
-    int unsigned iterations;                // Number of test iterations
+    virtual mpu_bfm bfm;                        // Virtual BFM interface
+    driver_tb driver_h;                         // Testbench driver
+    scoreboard_tb scoreboard_h;                 // Testbench scoreboard
+    checker_tb checker_h;                       // Testbench checker
+    mailbox #(mpu_data_sp) driver2checker;      // Top-level driver2checker mailbox
+    mailbox checker2scoreboard;                 // Top-level checker2scoreboard mailbox
+    mailbox #(stim_data_sp) stimulus2driver;    // Top-level stimulus2driver mailbox
+    stimulus_tb stimulus_h;                     // Parent class test type
+    int unsigned iterations;                    // Number of test iterations
 
     // Object instantiation
     function new (virtual mpu_bfm b, string testcase, int unsigned runs);

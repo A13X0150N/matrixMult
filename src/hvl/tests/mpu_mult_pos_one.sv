@@ -9,11 +9,10 @@
 //
 // ----------------------------------------------------------------------------
 
-`include "src/hvl/stimulus_tb.sv"
-
 import global_defs::*;
 import mpu_data_types::*;
 import testbench_utilities::*;
+import hvl_stimulus_includes::*;
 
 class mpu_mult_pos_one extends stimulus_tb;
 
@@ -23,37 +22,39 @@ class mpu_mult_pos_one extends stimulus_tb;
 
     task execute();
     	$display("Testcase: Multiply a matrix with a matrix filled with +1");
-
-    	/*generate_matrix(1.0, 0.0, this.load_data);             // Uniform +1.0 matrix
-    	stimulus2driver.put();
-
-        ////////////////////////////////
-        // Check multiply by +1 cases //
-        ////////////////////////////////
-        generate_matrix(1.0, 1.0, this.load_data);
-        this.checker_data.matrix_in = this.load_data.matrix;
-        load(0);
-        generate_matrix(1.0, 0.0, this.load_data);             // Uniform +1.0 matrix
-        this.checker_data.matrix_in = this.load_data.matrix;
-        load(1);
-        generate_matrix_reverse(100.0, 100.0, this.load_data); // Matrix of large numbers
-        this.checker_data.matrix_in = this.load_data.matrix;
-        load(2);
-        generate_matrix(0.01, 0.01, this.load_data);           // Matrix of small numbers
-        this.checker_data.matrix_in = this.load_data.matrix;
-        load(3);
-        multiply(0, 1, 4);
-        multiply(1, 1, 5);
-        multiply(2, 1, 6);
-        multiply(3, 1, 7);
-        store_registers();*/
-        //simulation_register_dump(mpu_top.mpu_register_file.matrix_register_array);
-
-
-
-
+        this.stim_data.ready_to_load = TRUE;
+    	this.stim_data.ready_to_multiply = FALSE;
+        this.stim_data.generated_matrix = generate_matrix(1.0, 0.0);        // Uniform +1.0 matrix
+        this.stim_data.addr0 = 0;
+        this.stimulus2driver.put(this.stim_data);
+        this.stim_data.generated_matrix = generate_matrix(1.0, 1.0);        // Increment +1.0 matrix
+        this.stim_data.addr0 = 1;
+        this.stimulus2driver.put(this.stim_data);
+        this.stim_data.generated_matrix = generate_matrix(100.0, 100.0);    // Matrix of large numbers
+        this.stim_data.addr0 = 2;
+        this.stimulus2driver.put(this.stim_data);
+        this.stim_data.generated_matrix = generate_matrix(0.01, 0.01);      // Matrix of small numbers
+        this.stim_data.addr0 = 3;
+        this.stimulus2driver.put(this.stim_data);
+        this.stim_data.ready_to_load = FALSE;
+        this.stim_data.ready_to_multiply = TRUE;
+        this.stim_data.addr0 = 0;
+        this.stim_data.addr1 = 0;
+        this.stim_data.dest  = 4;
+        this.stimulus2driver.put(this.stim_data);
+        this.stim_data.addr0 = 0;
+        this.stim_data.addr1 = 1;
+        this.stim_data.dest  = 5;
+        this.stimulus2driver.put(this.stim_data);
+        this.stim_data.addr0 = 0;
+        this.stim_data.addr1 = 2;
+        this.stim_data.dest  = 6;
+        this.stimulus2driver.put(this.stim_data);
+        this.stim_data.addr0 = 0;
+        this.stim_data.addr1 = 3;
+        this.stim_data.dest  = 7;
+        this.stim_data.ready_to_store = TRUE;        
+        this.stimulus2driver.put(this.stim_data);
     endtask : execute
-
-
 
 endclass

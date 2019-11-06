@@ -12,7 +12,6 @@
  
 // Definitions for global space
 package global_defs;
-
     //////////////////////////// * * *  ADJUSTABLE TOP-LEVEL PARAMETERS  * * * ////////////////////////////
 
     parameter FP = 32;                      // Floating point bit selection
@@ -52,10 +51,8 @@ package global_defs;
     parameter MBITS = $clog2(M)-1;          // Register row bits
     parameter NBITS = $clog2(N)-1;          // Register column bits
     parameter MATRIX_REG_BITS = $clog2(MATRIX_REGISTERS)-1;  // Register address bits
-
     parameter POS_ONE_32BIT = 32'h3f800000;
     parameter NEG_ONE_32BIT = 32'hbf800000;
-
 endpackage : global_defs
 
 
@@ -156,6 +153,17 @@ package mpu_data_types;
         float_sp [0:M*N-1] matrix;
     } vectorized_matrix_sp;
 
+    // Stimulus item
+    typedef struct packed {
+        vectorized_matrix_sp generated_matrix;
+        bool_e ready_to_load;
+        bool_e ready_to_store;
+        bool_e ready_to_multiply;
+        bit [MATRIX_REG_BITS:0] addr0;
+        bit [MATRIX_REG_BITS:0] addr1;
+        bit [MATRIX_REG_BITS:0] dest;
+    } stim_data_sp;
+
     // MPU bus sequence item struct
     typedef struct packed {
         // Request fields
@@ -188,13 +196,11 @@ package mpu_data_types;
         bit [MATRIX_REG_BITS:0] addr1;
         bit [MATRIX_REG_BITS:0] dest;
     } mpu_multiply_sp;
-
 endpackage : mpu_data_types
 
 
 // Testbench functions and tasks
 package testbench_utilities;
-
     import global_defs::FPBITS;
     import global_defs::MATRIX_REGISTERS;
     import global_defs::M;
@@ -205,7 +211,6 @@ package testbench_utilities;
     import mpu_data_types::mpu_multiply_sp;
     import mpu_data_types::float_sp;
     import mpu_data_types::vectorized_matrix_sp;
-
     parameter CLOCK_PERIOD = 10;                // Clock Perid
     parameter MAX_CYCLES = 1000000;             // Maximum clock cycles
     parameter M_MEM = 6;                        // Testbench input matrix rows     MUST BE <=M
@@ -214,7 +219,6 @@ package testbench_utilities;
     parameter BIG_FLOAT_32 = 32'h7f7fffff;      // Very large number to force overflow
     parameter SMALL_FLOAT_32 = 32'h00800000;    // Very small number to force underflow
     parameter MAX_ERROR = 10.0;                 // Maximum tolerated error accumulated across a matrix
-    //parameter NUM_TESTS = 100;                 // Scalable number of tests to perform
 
     // Matrix generator, incremental order
     function vectorized_matrix_sp generate_matrix(input shortreal seed, input shortreal scale);
@@ -616,5 +620,12 @@ package testbench_utilities;
                     $bitstoshortreal(matrix_register_array[7][5][4]),
                     $bitstoshortreal(matrix_register_array[7][5][5]));
     endtask : simulation_register_dump
-
 endpackage : testbench_utilities
+
+
+// Stimulus includes
+package hvl_stimulus_includes;
+    `include "src/hvl/stimulus_tb.sv"
+    `include "src/hvl/tests/mpu_load_store.sv"
+    `include "src/hvl/tests/mpu_mult_pos_one.sv"
+endpackage : hvl_stimulus_includes

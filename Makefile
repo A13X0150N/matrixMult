@@ -66,7 +66,8 @@ vbuild-cover:
 	velhvl -sim veloce
 
 run:
-	vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_positive_one +RUNS=100
+	vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=load_store +RUNS=10
+	vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_positive_ones +RUNS=10
 
 run-cover:
 	vsim -c -do "coverage save -onexit coverage/mpu_cov.ucdb; run -all; quit -f" -coverage top_tb mpu_top
