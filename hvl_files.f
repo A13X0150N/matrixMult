@@ -5,5 +5,10 @@ src/hvl/stimulus_tb.sv
 src/hvl/testbench_tb.sv
 src/hvl/testcase_factory_tb.sv
 src/hvl/top_tb.sv
-src/hvl/tests/mpu_mult_pos_one.sv
 src/hvl/tests/mpu_load_store.sv
+src/hvl/tests/mpu_cluster_unit.sv
+src/hvl/tests/mpu_mult_pos_one.sv
+src/hvl/tests/mpu_mult_neg_one.sv
+src/hvl/tests/mpu_mult_zero.sv
+src/hvl/tests/mpu_mult_inverse.sv
+src/hvl/tests/mpu_overflow_underflow.sv

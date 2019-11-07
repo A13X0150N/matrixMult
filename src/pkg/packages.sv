@@ -627,5 +627,10 @@ endpackage : testbench_utilities
 package hvl_stimulus_includes;
     `include "src/hvl/stimulus_tb.sv"
     `include "src/hvl/tests/mpu_load_store.sv"
+    `include "src/hvl/tests/mpu_cluster_unit.sv"
     `include "src/hvl/tests/mpu_mult_pos_one.sv"
+    `include "src/hvl/tests/mpu_mult_neg_one.sv"
+    `include "src/hvl/tests/mpu_mult_zero.sv"
+    `include "src/hvl/tests/mpu_mult_inverse.sv"
+    `include "src/hvl/tests/mpu_overflow_underflow.sv"
 endpackage : hvl_stimulus_includes

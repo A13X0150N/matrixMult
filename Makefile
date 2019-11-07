@@ -8,6 +8,8 @@ help:
 	*                                                                   * \n \
 	*  make sim: clean-puresim lib build run                            * \n \
 	*  make emu: clean-veloce vlib vbuild run                           * \n \
+	*  make sim-all: clean-puresim lib build run-all                    * \n \
+	*  make emu-all: clean-veloce vlib vbuild run-all                   * \n \
 	*  make sim-cover: clean-puresim lib build-cover run-cover report   * \n \
 	*  make emu-cover: clean-veloce vlib vbuild-cover run-cover report  * \n \
 	*  make exp: clean-experiment experiment                            * \n \
@@ -16,10 +18,12 @@ help:
 
 # make sim runs all in the 'puresim' environment
 sim: clean-puresim lib build run
+sim-all: clean-puresim lib build run-all
 sim-cover: clean-puresim lib build-cover run-cover report
 
 # make emu runs all in the 'veloce' environment
 emu: clean-veloce vlib vbuild run
+emu-all: clean-veloce vlib vbuild run-all
 emu-cover: clean-veloce vlib vbuild-cover run-cover report
 
 # make exp runs a side experiment that does not intersect with the design
@@ -66,8 +70,22 @@ vbuild-cover:
 	velhvl -sim veloce
 
 run:
+	#vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=load_store +RUNS=10
+	#vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=cluster_unit +RUNS=10
+	#vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_positive_ones +RUNS=10
+	#vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_negative_ones +RUNS=10
+	#vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_zero +RUNS=10
+	vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_inverse +RUNS=10
+	#vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=overflow_underflow +RUNS=10
+
+run-all:
 	vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=load_store +RUNS=10
+	vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=cluster_unit +RUNS=10
 	vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_positive_ones +RUNS=10
+	vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_negative_ones +RUNS=10
+	vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_zero +RUNS=10
+	vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_inverse +RUNS=10
+	vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=overflow_underflow +RUNS=10
 
 run-cover:
 	vsim -c -do "coverage save -onexit coverage/mpu_cov.ucdb; run -all; quit -f" -coverage top_tb mpu_top

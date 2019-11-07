@@ -21,8 +21,7 @@ class driver_tb;
     mailbox #(mpu_data_sp) driver2checker;          // Mailbox to reference model
     mailbox #(stim_data_sp) stimulus2driver;        // Generated stimulus
     mpu_data_sp checker_data;                       // Checker model packet
-    int i, num;                                     // Loop counters
-    shortreal ii;                                   // Float iteration
+    int num;                                        // Loop counters
 
     mpu_load_sp load_data;
     mpu_store_sp store_data;
@@ -53,132 +52,6 @@ class driver_tb;
         end while (!this.stim_data.ready_to_store);
         store_registers();
 
-
-        /*
-        ///////////////////////////////////////////////////////////////
-        // Next, check that the individual FMA units are all working //
-        ///////////////////////////////////////////////////////////////
-        generate_matrix(1.0, 0.0, this.load_data);     // Uniform 1.0 matrix
-        this.checker_data.matrix_in = this.load_data.matrix;
-        load(0);
-        this.load_data.matrix = {$shortrealtobits(1.0), $shortrealtobits(1.0), $shortrealtobits(1.0), $shortrealtobits(1.0), $shortrealtobits(1.0), $shortrealtobits(1.0),
-                                 $shortrealtobits(2.0), $shortrealtobits(2.0), $shortrealtobits(2.0), $shortrealtobits(2.0), $shortrealtobits(2.0), $shortrealtobits(2.0),
-                                 $shortrealtobits(4.0), $shortrealtobits(4.0), $shortrealtobits(4.0), $shortrealtobits(4.0), $shortrealtobits(4.0), $shortrealtobits(4.0),
-                                 $shortrealtobits(8.0), $shortrealtobits(8.0), $shortrealtobits(8.0), $shortrealtobits(8.0), $shortrealtobits(8.0), $shortrealtobits(8.0),
-                                 $shortrealtobits(16.0), $shortrealtobits(16.0), $shortrealtobits(16.0), $shortrealtobits(16.0), $shortrealtobits(16.0), $shortrealtobits(16.0),
-                                 $shortrealtobits(32.0), $shortrealtobits(32.0), $shortrealtobits(32.0), $shortrealtobits(32.0), $shortrealtobits(32.0), $shortrealtobits(32.0)};
-        this.checker_data.matrix_in = this.load_data.matrix;
-        load(1);
-        this.load_data.matrix = {$shortrealtobits(1.0), $shortrealtobits(2.0), $shortrealtobits(4.0), $shortrealtobits(8.0), $shortrealtobits(16.0), $shortrealtobits(32.0),
-                                 $shortrealtobits(1.0), $shortrealtobits(2.0), $shortrealtobits(4.0), $shortrealtobits(8.0), $shortrealtobits(16.0), $shortrealtobits(32.0),
-                                 $shortrealtobits(1.0), $shortrealtobits(2.0), $shortrealtobits(4.0), $shortrealtobits(8.0), $shortrealtobits(16.0), $shortrealtobits(32.0),
-                                 $shortrealtobits(1.0), $shortrealtobits(2.0), $shortrealtobits(4.0), $shortrealtobits(8.0), $shortrealtobits(16.0), $shortrealtobits(32.0),
-                                 $shortrealtobits(1.0), $shortrealtobits(2.0), $shortrealtobits(4.0), $shortrealtobits(8.0), $shortrealtobits(16.0), $shortrealtobits(32.0),
-                                 $shortrealtobits(1.0), $shortrealtobits(2.0), $shortrealtobits(4.0), $shortrealtobits(8.0), $shortrealtobits(16.0), $shortrealtobits(32.0)};
-        this.checker_data.matrix_in = this.load_data.matrix;
-        load(2);
-        multiply(0, 1, 3);
-        multiply(1, 0, 4);
-        multiply(0, 2, 5);
-        multiply(2, 0, 6);
-        multiply(0, 0, 7);
-        store_registers();
-
-        ////////////////////////////////
-        // Check multiply by +1 cases //
-        ////////////////////////////////
-        generate_matrix(1.0, 1.0, this.load_data);
-        this.checker_data.matrix_in = this.load_data.matrix;
-        load(0);
-        generate_matrix(1.0, 0.0, this.load_data);             // Uniform +1.0 matrix
-        this.checker_data.matrix_in = this.load_data.matrix;
-        load(1);
-        generate_matrix_reverse(100.0, 100.0, this.load_data); // Matrix of large numbers
-        this.checker_data.matrix_in = this.load_data.matrix;
-        load(2);
-        generate_matrix(0.01, 0.01, this.load_data);           // Matrix of small numbers
-        this.checker_data.matrix_in = this.load_data.matrix;
-        load(3);
-        multiply(0, 1, 4);
-        multiply(1, 1, 5);
-        multiply(2, 1, 6);
-        multiply(3, 1, 7);
-        store_registers();
-        //simulation_register_dump(mpu_top.mpu_register_file.matrix_register_array);
-
-
-        ////////////////////////////////
-        // Check multiply by -1 cases //
-        ////////////////////////////////
-        generate_matrix(1.0, 1.0, this.load_data);
-        this.checker_data.matrix_in = this.load_data.matrix;
-        load(0);
-        generate_matrix(-1.0, 0.0, this.load_data);            // Uniform -1.0 matrix
-        this.checker_data.matrix_in = this.load_data.matrix;
-        load(1);
-        generate_matrix(100.0, 100.0, this.load_data);         // Matrix of large numbers
-        this.checker_data.matrix_in = this.load_data.matrix;
-        load(2);
-        generate_matrix_reverse(0.01, 0.01, this.load_data);   // Matrix of small numbers
-        this.checker_data.matrix_in = this.load_data.matrix;
-        load(3);
-        multiply(0, 1, 4);
-        multiply(1, 1, 5);
-        multiply(2, 1, 6);
-        multiply(3, 1, 7);
-        store_registers();
-
-        ///////////////////////////////
-        // Check multiply by 0 cases //
-        ///////////////////////////////
-        generate_matrix(0.0, 0.0, this.load_data);             // Uniform 0.0 matrix
-        this.checker_data.matrix_in = this.load_data.matrix;
-        load(0);
-        generate_matrix(-1.0, 0.0, this.load_data);            // Uniform -1.0 matrix
-        this.checker_data.matrix_in = this.load_data.matrix;
-        load(1);
-        generate_matrix(100.0, 100.0, this.load_data);         // Matrix of large numbers
-        this.checker_data.matrix_in = this.load_data.matrix;
-        load(2);
-        generate_matrix(0.01, 0.01, this.load_data);           // Matrix of small numbers
-        this.checker_data.matrix_in = this.load_data.matrix;
-        load(3);
-        multiply(0, 0, 4);
-        multiply(0, 1, 5);
-        multiply(0, 2, 6);
-        multiply(3, 0, 7);
-        store_registers();
-        //show_matrix(this.load_data.matrix);*/
-
-        ////////////////////////////////////////
-        // Check inverse multiplication cases //
-        ////////////////////////////////////////
-        /*
-        this.load_data.matrix = {$shortrealtobits(1.0), $shortrealtobits(2.0), $shortrealtobits(3.0),
-                                 $shortrealtobits(0.0), $shortrealtobits(1.0), $shortrealtobits(4.0),
-                                 $shortrealtobits(5.0), $shortrealtobits(6.0), $shortrealtobits(0.0)};
-        this.checker_data.matrix_in = this.load_data.matrix;
-        load(0);
-        this.load_data.matrix = {$shortrealtobits(-24.0), $shortrealtobits(18.0), $shortrealtobits(5.0),
-                                 $shortrealtobits(20.0), $shortrealtobits(-15.0), $shortrealtobits(-4.0),
-                                 $shortrealtobits(-5.0), $shortrealtobits(4.0), $shortrealtobits(1.0)};
-        this.checker_data.matrix_in = this.load_data.matrix;
-        load(1);
-        this.load_data.matrix = {$shortrealtobits(0.0), $shortrealtobits(1.0), $shortrealtobits(0.0),
-                                 $shortrealtobits(1.0), $shortrealtobits(0.0), $shortrealtobits(1.0),
-                                 $shortrealtobits(1.0), $shortrealtobits(1.0), $shortrealtobits(0.0)};
-        this.checker_data.matrix_in = this.load_data.matrix;
-        load(2);
-        this.load_data.matrix = {$shortrealtobits(-1.0), $shortrealtobits(0.0), $shortrealtobits(1.0),
-                                 $shortrealtobits(1.0), $shortrealtobits(0.0), $shortrealtobits(1.0),
-                                 $shortrealtobits(1.0), $shortrealtobits(1.0), $shortrealtobits(-1.0)};
-        this.checker_data.matrix_in = this.load_data.matrix;
-        load(3);
-        multiply(0, 1, 4);
-        multiply(1, 0, 5);
-        multiply(2, 3, 6);
-        multiply(3, 2, 7);
-        store_registers();*/
 
         /*///////////////////////////////
         // Run the bulk of the tests //
@@ -213,49 +86,6 @@ class driver_tb;
         this.bfm.repeat_mult(0, 1, 2, this.iterations);
         store(2);*/
 
-        ///////////////////////////////////////////////////////
-        // Check multiplication overflow and underflow cases //
-        ///////////////////////////////////////////////////////
-        /*this.load_data.matrix = {BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32,
-                                 BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32,
-                                 BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32,
-                                 BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32,
-                                 BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32,
-                                 BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32};
-        this.checker_data.matrix_in = this.load_data.matrix;
-        load(0);
-        this.load_data.matrix = {BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32,
-                                 BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32,
-                                 BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32,
-                                 BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32,
-                                 BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32,
-                                 BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32};
-        this.checker_data.matrix_in = this.load_data.matrix;
-        load(1);
-        this.load_data.matrix = {SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32,
-                                 SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32,
-                                 SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32,
-                                 SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32,
-                                 SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32,
-                                 SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32};
-        this.checker_data.matrix_in = this.load_data.matrix;
-        load(2);
-        this.load_data.matrix = {SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32,
-                                 SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32,
-                                 SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32,
-                                 SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32,
-                                 SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32,
-                                 SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32, SMALL_FLOAT_32};
-        load(3);
-        multiply(0, 1, 4);      // Overflow
-        multiply(1, 0, 5);      // Overflow
-        multiply(2, 3, 6);      // Underflow
-        multiply(3, 2, 7);      // Underflow
-        store_registers();*/
-
-        //////////////////////
-        // Finish Testbench //
-        //////////////////////
         nop();
         $finish;
     endtask : execute
@@ -320,7 +150,7 @@ class driver_tb;
 
     // Store all registers
     task automatic store_registers();
-        for (i = 0; i < MATRIX_REGISTERS; ++i) begin
+        for (int i = 0; i < MATRIX_REGISTERS; ++i) begin
             store(i);
         end 
         nop();

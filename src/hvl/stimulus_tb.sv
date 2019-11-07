@@ -20,7 +20,9 @@ virtual class stimulus_tb;
 	stim_data_sp stim_data;
 
 	function new();
+		this.stim_data.ready_to_load = FALSE;
 		this.stim_data.ready_to_store = FALSE;
+		this.stim_data.ready_to_multiply = FALSE;
 	endfunction : new
 
 	pure virtual task execute();
