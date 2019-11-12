@@ -24,6 +24,8 @@ class testcase_factory_tb;
 		mpu_mult_pos_one mpu_mult_pos_one_h;
 		mpu_mult_neg_one mpu_mult_neg_one_h;
 		mpu_mult_zero mpu_mult_zero_h;
+		mpu_mult_random mpu_mult_random_h;
+		mpu_mult_repeat mpu_mult_repeat_h;
 		mpu_mult_inverse mpu_mult_inverse_h;
 		mpu_overflow_underflow mpu_overflow_underflow_h;
 
@@ -47,6 +49,14 @@ class testcase_factory_tb;
 			"multiply_zero": begin
 				mpu_mult_zero_h = new();
 				return mpu_mult_zero_h;
+			end
+			"multiply_random": begin
+				mpu_mult_random_h = new();
+				return mpu_mult_random_h;
+			end
+			"multiply_repeat": begin
+				mpu_mult_repeat_h = new();
+				return mpu_mult_repeat_h;
 			end
 			"multiply_inverse": begin
 				mpu_mult_inverse_h = new();

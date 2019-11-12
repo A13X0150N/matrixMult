@@ -71,10 +71,9 @@ module fpu_fma
                       ((float_1_in.mantissa && !float_1_in.exponent) || float_1_in.exponent == '1);
 
     // TODO: come back and work on error detection, it is currently locking the cluster when one happens
-    assign error_generated = FALSE; //(($signed(product.exponent) > MAX_EXP) || ($signed(product.exponent) < MIN_EXP));
+    assign error_generated = FALSE; //(($signed(product.exponent) >= MAX_EXP) || ($signed(product.exponent) =< MIN_EXP));
     						 //((float_0_in != POS_ONE_32BIT) && (float_0_in != NEG_ONE_32BIT)) &&
                              //((float_1_in != POS_ONE_32BIT) && (float_1_in != NEG_ONE_32BIT)) &&
-                             //(($signed(float_out.exponent) > 127) || ($signed(float_out.exponent) < -128));
                              
     // State machine driver
     always_ff @(posedge clk) begin
@@ -327,10 +326,11 @@ module fpu_fma
                     float_1_out <= '0;
                     float_0 <= float_0;
                     float_1 <= float_1;
-                    accum.sign <= accum.sign;
+                    //accum.sign <= accum.sign;
+                    accum.sign <= product.sign;
                     accum.exponent <= accum.exponent;
                     // Check if adding both positive or both negative numbers
-                    if (accum.sign == product.sign) begin
+                    if ((!accum.exponent && !accum.mantissa) || (!product.exponent && !product.mantissa) || (accum.sign == product.sign)) begin
                         accum.mantissa <= product.mantissa + accum.mantissa;
                     end
                     // Else there is a subtraction to perform

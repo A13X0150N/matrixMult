@@ -46,7 +46,7 @@ class testbench_tb;
         $display("\n");
 
         // Instantiate testbench pieces
-        this.driver_h = new(this.bfm, this.iterations);
+        this.driver_h = new(this.bfm);
         this.scoreboard_h = new(this.bfm);
         this.checker_h = new(this.bfm);
         
@@ -65,8 +65,8 @@ class testbench_tb;
         fork
             this.scoreboard_h.execute();
             this.checker_h.execute();
-            this.stimulus_h.execute();
-            this.driver_h.execute();
+            this.stimulus_h.execute(this.iterations);
+            this.driver_h.execute(this.iterations);
         join_none
     endtask : execute
 

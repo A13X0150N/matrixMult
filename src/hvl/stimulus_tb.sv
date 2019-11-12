@@ -23,8 +23,9 @@ virtual class stimulus_tb;
 		this.stim_data.ready_to_load = FALSE;
 		this.stim_data.ready_to_store = FALSE;
 		this.stim_data.ready_to_multiply = FALSE;
+		this.stim_data.ready_to_multiply_repeat = FALSE;
 	endfunction : new
 
-	pure virtual task execute();
+	pure virtual task execute(input int unsigned iterations);
 
 endclass : stimulus_tb

@@ -159,6 +159,7 @@ package mpu_data_types;
         bool_e ready_to_load;
         bool_e ready_to_store;
         bool_e ready_to_multiply;
+        bool_e ready_to_multiply_repeat;
         bit [MATRIX_REG_BITS:0] addr0;
         bit [MATRIX_REG_BITS:0] addr1;
         bit [MATRIX_REG_BITS:0] dest;
@@ -230,11 +231,13 @@ package testbench_utilities;
     endfunction : generate_matrix
 
     // Matrix generator, decremental order
-    task automatic generate_matrix_reverse(input shortreal seed, input shortreal scale, vectorized_matrix_sp genmat);
+    function vectorized_matrix_sp generate_matrix_reverse(input shortreal seed, input shortreal scale);
+        vectorized_matrix_sp genmat;
         for (int i = NUM_ELEMENTS; i; --i) begin
             genmat = {genmat, $shortrealtobits(seed + i * scale)};
         end
-    endtask : generate_matrix_reverse
+        return genmat;
+    endfunction : generate_matrix_reverse
 
     // Generate a 'random' 32-bit float
     function shortreal random_float();
@@ -632,5 +635,7 @@ package hvl_stimulus_includes;
     `include "src/hvl/tests/mpu_mult_neg_one.sv"
     `include "src/hvl/tests/mpu_mult_zero.sv"
     `include "src/hvl/tests/mpu_mult_inverse.sv"
+    `include "src/hvl/tests/mpu_mult_random.sv"
+    `include "src/hvl/tests/mpu_mult_repeat.sv"
     `include "src/hvl/tests/mpu_overflow_underflow.sv"
 endpackage : hvl_stimulus_includes

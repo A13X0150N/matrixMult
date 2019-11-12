@@ -27,31 +27,33 @@ class driver_tb;
     mpu_store_sp store_data;
     mpu_multiply_sp multiply_data;
     stim_data_sp stim_data;
-    int unsigned iterations;
 
     // Object instantiation
-    function new(virtual mpu_bfm b, int unsigned iterations);
+    function new(virtual mpu_bfm b);
         this.bfm = b;
-        this.iterations = iterations;
     endfunction : new
 
     // Run the tests
-    task execute();
+    task execute(input int unsigned iterations);
         init();
-
-        do begin
-            this.stimulus2driver.get(this.stim_data);
-            if (this.stim_data.ready_to_load) begin
-                this.load_data.load_matrix = this.stim_data.generated_matrix;
-                this.checker_data.matrix_in = this.stim_data.generated_matrix;
-                load(this.stim_data.addr0);
-            end
-            if (this.stim_data.ready_to_multiply) begin
-                multiply(this.stim_data.addr0, this.stim_data.addr1, this.stim_data.dest);
-            end
-        end while (!this.stim_data.ready_to_store);
-        store_registers();
-
+        repeat (iterations) begin
+            do begin
+                this.stimulus2driver.get(this.stim_data);
+                if (this.stim_data.ready_to_load) begin
+                    this.load_data.load_matrix = this.stim_data.generated_matrix;
+                    this.checker_data.matrix_in = this.stim_data.generated_matrix;
+                    load(this.stim_data.addr0);
+                end
+                if (this.stim_data.ready_to_multiply) begin
+                    multiply(this.stim_data.addr0, this.stim_data.addr1, this.stim_data.dest);
+                end
+                else if (this.stim_data.ready_to_multiply_repeat) begin
+                    multiply(this.stim_data.addr0, this.stim_data.addr1, this.stim_data.dest);
+                    this.bfm.repeat_mult(this.stim_data.addr0, this.stim_data.addr1, this.stim_data.dest, iterations);
+                end
+            end while (!this.stim_data.ready_to_store);
+            store_registers();
+        end
 
         /*///////////////////////////////
         // Run the bulk of the tests //
@@ -73,18 +75,6 @@ class driver_tb;
             multiply($urandom_range(1,2), $urandom_range(1,2), 7);
             store_registers();
         end*/
-
-        //////////////////////////////////////////
-        // Run back-to-back multiply operations //
-        //////////////////////////////////////////
-        /*generate_matrix(1.0, 1.0, this.load_data);
-        this.checker_data.matrix_in = this.load_data.matrix;
-        load(0);
-        generate_matrix(1.0, 0.0, this.load_data);             // Uniform +1.0 matrix
-        this.checker_data.matrix_in = this.load_data.matrix;
-        load(1);
-        this.bfm.repeat_mult(0, 1, 2, this.iterations);
-        store(2);*/
 
         nop();
         $finish;
@@ -144,7 +134,7 @@ class driver_tb;
         this.multiply_data.addr0 = src_addr_0;
         this.multiply_data.addr1 = src_addr_1;
         this.multiply_data.dest = dest_addr;
-        this.bfm.multiply(multiply_data);
+        this.bfm.multiply(this.multiply_data);
         this.driver2checker.put(this.checker_data);
     endtask : multiply
 

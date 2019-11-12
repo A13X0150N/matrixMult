@@ -10,5 +10,7 @@ src/hvl/tests/mpu_cluster_unit.sv
 src/hvl/tests/mpu_mult_pos_one.sv
 src/hvl/tests/mpu_mult_neg_one.sv
 src/hvl/tests/mpu_mult_zero.sv
+src/hvl/tests/mpu_mult_random.sv
+src/hvl/tests/mpu_mult_repeat.sv
 src/hvl/tests/mpu_mult_inverse.sv
 src/hvl/tests/mpu_overflow_underflow.sv

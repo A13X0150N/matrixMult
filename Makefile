@@ -70,22 +70,26 @@ vbuild-cover:
 	velhvl -sim veloce
 
 run:
-	#vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=load_store +RUNS=10
-	#vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=cluster_unit +RUNS=10
-	#vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_positive_ones +RUNS=10
-	#vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_negative_ones +RUNS=10
-	#vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_zero +RUNS=10
-	vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_inverse +RUNS=10
-	#vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=overflow_underflow +RUNS=10
+	#vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=load_store +RUNS=1
+	#vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=cluster_unit +RUNS=1
+	#vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_positive_ones +RUNS=1
+	#vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_negative_ones +RUNS=1
+	#vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_zero +RUNS=1
+	vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_random +RUNS=100
+	#vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_repeat +RUNS=100
+	#vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_inverse +RUNS=1
+	#vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=overflow_underflow +RUNS=1
 
 run-all:
-	vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=load_store +RUNS=10
-	vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=cluster_unit +RUNS=10
-	vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_positive_ones +RUNS=10
-	vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_negative_ones +RUNS=10
-	vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_zero +RUNS=10
-	vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_inverse +RUNS=10
-	vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=overflow_underflow +RUNS=10
+	vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=load_store +RUNS=1
+	vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=cluster_unit +RUNS=1
+	vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_positive_ones +RUNS=1
+	vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_negative_ones +RUNS=1
+	vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_zero +RUNS=1
+	vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_random +RUNS=100
+	vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_repeat +RUNS=100
+	vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_inverse +RUNS=1
+	vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=overflow_underflow +RUNS=1
 
 run-cover:
 	vsim -c -do "coverage save -onexit coverage/mpu_cov.ucdb; run -all; quit -f" -coverage top_tb mpu_top
