@@ -22,8 +22,8 @@ class mpu_overflow_underflow extends stimulus_tb;
         $display("Testcase: Multiply large/small matrices to get overflow/underflow");
     endfunction : new
 
-    task execute(input int unsigned iterations);
-        repeat (iterations) begin
+    task execute(input int unsigned runs);
+        repeat (runs) begin
             this.stim_data.ready_to_load = TRUE;
             this.stim_data.generated_matrix = {
                 BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32, BIG_FLOAT_32,

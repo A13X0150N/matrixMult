@@ -21,7 +21,8 @@ class mpu_mult_repeat extends stimulus_tb;
         $display("Testcase: Multiply matrices together on repeat");
     endfunction : new
 
-    task execute(input int unsigned iterations);
+    task execute(input int unsigned runs);
+        this.stim_data.ready_to_multiply_repeat = TRUE;
         this.stim_data.ready_to_load = TRUE;
         this.stim_data.generated_matrix = generate_matrix(1.0, 0.0);        // Uniform +1.0 matrix
         this.stim_data.addr0 = 0;
@@ -31,6 +32,7 @@ class mpu_mult_repeat extends stimulus_tb;
         this.stimulus2driver.put(this.stim_data);
         this.stim_data.ready_to_load = FALSE;
         this.stim_data.ready_to_multiply_repeat = TRUE;
+        this.stim_data.ready_to_multiply = TRUE;
         this.stim_data.addr0 = 0;
         this.stim_data.addr1 = 1;
         this.stim_data.dest  = 2;

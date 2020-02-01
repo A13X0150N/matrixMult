@@ -75,21 +75,21 @@ run:
 	#vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_positive_ones +RUNS=1
 	#vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_negative_ones +RUNS=1
 	#vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_zero +RUNS=1
-	vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_random +RUNS=100
+	#vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_random +RUNS=100
 	#vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_repeat +RUNS=100
 	#vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_inverse +RUNS=1
 	#vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=overflow_underflow +RUNS=1
 
 run-all:
-	vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=load_store +RUNS=1
-	vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=cluster_unit +RUNS=1
-	vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_positive_ones +RUNS=1
-	vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_negative_ones +RUNS=1
-	vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_zero +RUNS=1
-	vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_random +RUNS=100
-	vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_repeat +RUNS=100
-	vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_inverse +RUNS=1
-	vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=overflow_underflow +RUNS=1
+	vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=load_store +RUNS=1 | grep "START TIME" -A 33 > results/load_store
+	vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=cluster_unit +RUNS=1 | grep "START TIME" -A 33 > results/cluster_unit
+	vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_positive_ones +RUNS=1 | grep "START TIME" -A 33 > results/multiply_positive_ones
+	vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_negative_ones +RUNS=1 | grep "START TIME" -A 33 > results/multiply_negative_ones
+	vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_zero +RUNS=1 | grep "START TIME" -A 33 > results/multiply_zero
+	vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_random +RUNS=10000 | grep "START TIME" -A 33 > results/multiply_random
+	vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_repeat +RUNS=10000 | grep "START TIME" -A 33 > results/multiply_repeat
+	vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=multiply_inverse +RUNS=1 | grep "START TIME" -A 33 > results/multiply_inverse
+	vsim -c -do "run -all; quit -f" top_tb mpu_top +TESTCASE=overflow_underflow +RUNS=1 | grep "START TIME" -A 33 > results/overflow_underflow
 
 run-cover:
 	vsim -c -do "coverage save -onexit coverage/mpu_cov.ucdb; run -all; quit -f" -coverage top_tb mpu_top
@@ -97,20 +97,20 @@ run-cover:
 report:
 	vcover report -html -htmldir coverage -verbose -threshL 50 -threshH 90 coverage/mpu_cov.ucdb
 
-clean-puresim:
+clean-base:
 	rm -rf coverage/*
 	rm -rf modelsim.ini
+	rm -rf results/*
+	rm -rf transcript
+
+clean-puresim: clean-base
 	rm -rf tbx.log/
 	rm -rf tbx.med/
-	rm -rf transcript
 	rm -rf work_puresim/
 
-clean-veloce:
-	rm -rf coverage/*
+clean-veloce: clean-base
 	rm -rf edsenv
-	rm -rf modelsim.ini
 	rm -rf tbxbindings.h
-	rm -rf transcript
 	rm -rf veloce.log/
 	rm -rf veloce.map
 	rm -rf veloce.med/

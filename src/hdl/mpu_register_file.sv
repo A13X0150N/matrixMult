@@ -67,7 +67,7 @@ module mpu_register_file
 );
 
     // Matrix Registers
-    float_sp matrix_register_array [MATRIX_REGISTERS][M][N];// pragma attribute buffer ram_block 1
+    float_sp matrix_register_array [MATRIX_REGISTERS][M][N];// pragma attribute matrix_register_array ram_block 1
     bit [MBITS:0] size_m;                                   // Matrix total rows
     bit [NBITS:0] size_n;                                   // Matrix total columns
     bit [MATRIX_REGISTERS-1:0] currently_reading;           // One-hot set of registers being read from

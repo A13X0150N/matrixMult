@@ -21,8 +21,8 @@ class mpu_mult_zero extends stimulus_tb;
         $display("Testcase: Multiply a matrix with a matrix filled with 0");
     endfunction : new
 
-    task execute(input int unsigned iterations);
-        repeat (iterations) begin
+    task execute(input int unsigned runs);
+        repeat (runs) begin
             this.stim_data.ready_to_load = TRUE;
             this.stim_data.generated_matrix = generate_matrix(0.0, 0.0);        // Uniform 0.0 matrix
             this.stim_data.addr0 = 0;

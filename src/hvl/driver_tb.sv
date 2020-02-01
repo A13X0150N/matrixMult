@@ -36,46 +36,47 @@ class driver_tb;
     // Run the tests
     task execute(input int unsigned iterations);
         init();
-        repeat (iterations) begin
-            do begin
+        this.stimulus2driver.peek(this.stim_data);
+        if (this.stim_data.ready_to_multiply_repeat) begin
+            this.stimulus2driver.get(this.stim_data);
+            if (this.stim_data.ready_to_load) begin
+                this.load_data.load_matrix = this.stim_data.generated_matrix;
+                this.checker_data.matrix_in = this.stim_data.generated_matrix;
+                load(this.stim_data.addr0);
+            end
+            if (this.stim_data.ready_to_load) begin
                 this.stimulus2driver.get(this.stim_data);
-                if (this.stim_data.ready_to_load) begin
-                    this.load_data.load_matrix = this.stim_data.generated_matrix;
-                    this.checker_data.matrix_in = this.stim_data.generated_matrix;
-                    load(this.stim_data.addr0);
-                end
-                if (this.stim_data.ready_to_multiply) begin
-                    multiply(this.stim_data.addr0, this.stim_data.addr1, this.stim_data.dest);
-                end
-                else if (this.stim_data.ready_to_multiply_repeat) begin
-                    multiply(this.stim_data.addr0, this.stim_data.addr1, this.stim_data.dest);
-                    this.bfm.repeat_mult(this.stim_data.addr0, this.stim_data.addr1, this.stim_data.dest, iterations);
-                end
-            end while (!this.stim_data.ready_to_store);
+                this.load_data.load_matrix = this.stim_data.generated_matrix;
+                this.checker_data.matrix_in = this.stim_data.generated_matrix;
+                load(this.stim_data.addr0);
+            end
+            this.stimulus2driver.get(this.stim_data);
+            if (this.stim_data.ready_to_multiply) begin
+                this.checker_data.op = MPU_MULT;
+                this.checker_data.src_addr_0 = this.stim_data.addr0;
+                this.checker_data.src_addr_1 = this.stim_data.addr1;
+                this.checker_data.dest_addr = this.stim_data.dest;
+                this.bfm.repeat_mult(this.stim_data.addr0, this.stim_data.addr1, this.stim_data.dest, iterations);
+                this.driver2checker.put(this.checker_data);
+            end
             store_registers();
         end
-
-        /*///////////////////////////////
-        // Run the bulk of the tests //
-        ///////////////////////////////
-        for (num = this.iterations; num; --num) begin
-            generate_matrix(random_float()*-1.0/num, random_float()*-1.0, this.load_data);
-            this.checker_data.matrix_in = this.load_data.matrix;
-            load(0);
-            generate_matrix_reverse(0.001, random_float()/num, this.load_data);
-            this.checker_data.matrix_in = this.load_data.matrix;
-            load(1);
-            generate_matrix(0.1, random_float()*0.07, this.load_data);
-            this.checker_data.matrix_in = this.load_data.matrix;
-            load(2);
-            multiply($urandom_range(0,2), $urandom_range(0,2), 3);
-            multiply($urandom_range(0,3), $urandom_range(0,3), 4);
-            multiply($urandom_range(0,4), $urandom_range(0,4), 5);
-            multiply($urandom_range(0,5), $urandom_range(0,5), 6);
-            multiply($urandom_range(1,2), $urandom_range(1,2), 7);
-            store_registers();
-        end*/
-
+        else begin
+            repeat (iterations) begin
+                do begin
+                    this.stimulus2driver.get(this.stim_data);
+                    if (this.stim_data.ready_to_load) begin
+                        this.load_data.load_matrix = this.stim_data.generated_matrix;
+                        this.checker_data.matrix_in = this.stim_data.generated_matrix;
+                        load(this.stim_data.addr0);
+                    end
+                    if (this.stim_data.ready_to_multiply) begin
+                        multiply(this.stim_data.addr0, this.stim_data.addr1, this.stim_data.dest);
+                    end
+                end while (!this.stim_data.ready_to_store);
+                store_registers();
+            end
+        end
         nop();
         $finish;
     endtask : execute

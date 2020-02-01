@@ -21,8 +21,8 @@ class mpu_mult_random extends stimulus_tb;
         $display("Testcase: Multiply random matrices together");
     endfunction : new
 
-    task execute(input int unsigned iterations);
-        repeat(iterations) begin
+    task execute(input int unsigned runs);
+        repeat(runs) begin
             this.stim_data.ready_to_load = TRUE;
             this.stim_data.generated_matrix = generate_matrix(-1.0*random_float()/10000, -1.0*random_float());
             this.stim_data.addr0 = 0;

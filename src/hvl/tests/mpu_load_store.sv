@@ -21,8 +21,8 @@ class mpu_load_store extends stimulus_tb;
         $display("Testcase: Load and store to all registers");
     endfunction : new
 
-    task execute(input int unsigned iterations);
-        repeat (iterations) begin
+    task execute(input int unsigned runs);
+        repeat (runs) begin
             this.stim_data.ready_to_load = TRUE;
             for (int i = 0, shortreal ii = 0.0; i < MATRIX_REGISTERS; ++i, ii = ii + 1.0 * 36.0) begin
                 this.stim_data.generated_matrix = generate_matrix(ii, 1.0);  // Each element is unique and sequential across all matrix registers

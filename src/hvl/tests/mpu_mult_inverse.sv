@@ -21,8 +21,8 @@ class mpu_mult_inverse extends stimulus_tb;
         $display("Testcase: Multiply unitary matrices with their inverses");
     endfunction : new
 
-    task execute(input int unsigned iterations);
-        repeat (iterations) begin
+    task execute(input int unsigned runs);
+        repeat (runs) begin
             this.stim_data.ready_to_load = TRUE;
             this.stim_data.generated_matrix = {
                 $shortrealtobits(1.0), $shortrealtobits(0.0), $shortrealtobits(0.0), $shortrealtobits(0.0), $shortrealtobits(0.0), $shortrealtobits(0.0),

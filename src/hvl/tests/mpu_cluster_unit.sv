@@ -22,8 +22,8 @@ class mpu_cluster_unit extends stimulus_tb;
         $display("Testcase: Multiply increasing powers of 2 for cluster configuartion checking");
     endfunction : new
 
-    task execute(input int unsigned iterations);
-        repeat (iterations) begin
+    task execute(input int unsigned runs);
+        repeat (runs) begin
             this.stim_data.ready_to_load = TRUE;
             this.stim_data.generated_matrix = generate_matrix(1.0, 0.0);        // Uniform +1.0 matrix
             this.stim_data.addr0 = 0;

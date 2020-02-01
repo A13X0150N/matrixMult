@@ -213,7 +213,7 @@ package testbench_utilities;
     import mpu_data_types::float_sp;
     import mpu_data_types::vectorized_matrix_sp;
     parameter CLOCK_PERIOD = 10;                // Clock Perid
-    parameter MAX_CYCLES = 1000000;             // Maximum clock cycles
+    parameter MAX_CYCLES = 10000000;            // Maximum clock cycles
     parameter M_MEM = 6;                        // Testbench input matrix rows     MUST BE <=M
     parameter N_MEM = 6;                        // Testbench input matrix columns  MUST BE <=N
     parameter NUM_ELEMENTS = M_MEM * N_MEM;     // Number of input elements per matrix for testbench

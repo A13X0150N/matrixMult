@@ -29,19 +29,19 @@ module top_tb;
         if($value$plusargs("RUNS=%d", runs));
         testbench_h = new(mpu_top.mpu_bfm, testcase, runs);
         testbench_h.execute();
-        #(CLOCK_PERIOD*MAX_CYCLES) $warning("MAX_CYCLES exceeded before end of test, shutting down testbench\n");
-        $finish;
+        //#(CLOCK_PERIOD*MAX_CYCLES) $warning("MAX_CYCLES exceeded before end of test, shutting down testbench\n");
+        //$finish;
     end
 
     final begin
         display_message("End of Testbench");
         $display("\n\t * STOP TIME: ");
         $system("date");
-        display_message("Design Registers");
+        /*display_message("Design Registers");
         simulation_register_dump(mpu_top.mpu_register_file.matrix_register_array);
         $display("\n\n");
         display_message("Testbench Registers");
-        simulation_register_dump(testbench_h.checker_h.ref_register_array);
+        simulation_register_dump(testbench_h.checker_h.ref_register_array);*/
         testbench_h.scoreboard_h.current_stats();
         $display("\n\n");
     end
